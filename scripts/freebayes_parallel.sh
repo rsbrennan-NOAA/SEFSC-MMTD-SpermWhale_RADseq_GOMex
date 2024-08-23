@@ -19,7 +19,12 @@
 #load software---------------------------------------------------------------
 source ~/.bashrc
 
-mamba activate freebayes-1.3.7 
+mamba activate freebayes-1.3.6 
+#module load bio/samtools
+
+#cd ~/spermWhaleRad/analysis/aligned
+
+#samtools index *.bam
 
 #input, output files, directories--------------------------------------------
 INDIR=~/spermWhaleRad/analysis/aligned
