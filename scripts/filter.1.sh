@@ -8,7 +8,7 @@
 #SBATCH -n 1
 #SBATCH --mem=16G
 #SBATCH --partition=standard
-#SBATCH --time=2:00:00
+#SBATCH --time=30:00
 
 source ~/.bashrc
 
@@ -25,4 +25,17 @@ vcftools --vcf ~/spermWhaleRad/analysis/freebayes/filtered.1.vcf \
         --max-missing 0.4 --mac 3 --remove-indels --max-alleles 2 --min-alleles 2 --minQ 30  \
         --recode \
         --stdout | bgzip > ~/spermWhaleRad/analysis/freebayes/filtered.2.vcf.gz
+
+# basic depth filter
+vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.2.vcf.gz --minDP 3 --recode --recode-INFO-all  --stdout | bgzip > ~/spermWhaleRad/analysis/freebayes/filtered.3.vcf.gz
+
+#more strict missingness:
+
+vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.3.vcf.gz --max-missing 0.6 --recode --recode-INFO-all  --stdout | bgzip > ~/spermWhaleRad/analysis/freebayes/filtered.4.vcf.gz
+
+# check missingness:
+cd ~/spermWhaleRad/analysis/freebayes/
+vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.4.vcf.gz --missing-indv
+
+
 
