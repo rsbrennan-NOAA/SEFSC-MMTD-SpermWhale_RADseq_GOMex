@@ -1,0 +1,73 @@
+Pmac002b	Atlantic
+Pmac007b	Atlantic
+Pmac055	Atlantic
+Pmac058	Atlantic
+Pmac060	Atlantic
+Pmac061	Atlantic
+Pmac062	Atlantic
+Pmac063	Atlantic
+Pmac064	Atlantic
+Pmac066b	Atlantic
+Pmac132	Atlantic
+Pmac133	Atlantic
+Pmac135	Atlantic
+Pmac138	Atlantic
+Pmac035b	Dry Tortuga
+Pmac036b	Dry Tortuga
+Pmac038b	Dry Tortuga
+Pmac041b	Dry Tortuga
+Pmac043b	Dry Tortuga
+Pmac050b	Dry Tortuga
+Pmac051b	Dry Tortuga
+Pmac052b	Dry Tortuga
+Pmac053b	Dry Tortuga
+Pmac054b	Dry Tortuga
+Pmac070	Dry Tortuga
+Pmac073	Dry Tortuga
+Pmac076	Dry Tortuga
+Pmac077	Dry Tortuga
+Pmac079	Dry Tortuga
+Pmac081	Dry Tortuga
+Pmac084	Dry Tortuga
+Pmac085	Dry Tortuga
+Pmac028	NGOMex
+Pmac030	NGOMex
+Pmac031	NGOMex
+Pmac032	NGOMex
+Pmac108	NGOMex
+Pmac110	NGOMex
+Pmac111	NGOMex
+Pmac113	NGOMex
+Pmac114	NGOMex
+Pmac115	NGOMex
+Pmac117	NGOMex
+Pmac119	NGOMex
+Pmac120	NGOMex
+Pmac121	NGOMex
+Pmac123	NGOMex
+Pmac124	NGOMex
+Pmac125	NGOMex
+Pmac126	NGOMex
+Pmac127	NGOMex
+Pmac128	NGOMex
+Pmac129	NGOMex
+Pmac130	NGOMex
+Pmac131	NGOMex
+Pmac033	WGOMex
+Pmac086	WGOMex
+Pmac087	WGOMex
+Pmac089	WGOMex
+Pmac090	WGOMex
+Pmac091	WGOMex
+Pmac092	WGOMex
+Pmac093	WGOMex
+Pmac094	WGOMex
+Pmac095	WGOMex
+Pmac096	WGOMex
+Pmac097	WGOMex
+Pmac098	WGOMex
+Pmac100	WGOMex
+Pmac101	WGOMex
+Pmac102	WGOMex
+Pmac103	WGOMex
+Pmac104	WGOMex
