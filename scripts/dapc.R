@@ -24,9 +24,12 @@ genl@pop <- as.factor(result$Pop.Structure.Location)
 
 ## Full data set
 pca1 <- glPca(genl,center = T, scale = T, nf = 5)
+
+png("../figures/dapc_eigen.png", h=4, w=4, units="in", res=300)
 barplot(100*pca1$eig/sum(pca1$eig), col = heat.colors(50), main="PCA Eigenvalues") # retain first 5 axes, incremental decrease after 2
 title(ylab="Percent of variance\nexplained", line = 2)
 title(xlab="Eigenvalues", line = 1)
+dev.off()
 
 #proportion of explained variance by first three axes
 a1<-pca1$eig[1]/sum(pca1$eig) # proportion of variation explained by 1st axis
@@ -46,8 +49,10 @@ num_pops <- length(levels(factor(pca1.scores$pop)))
 pca1.p<-ggscatter(pca1.scores, x = "PC1", y = "PC2", color = "pop",
                    ellipse = T, ellipse.level = 0.95, size = 3,
                   xlab = paste0("PC1 (",round(pcvar[1,2]*100,2),"%)"),
-                  ylab = paste0("PC2 (",round(pcvar[2,2]*100,2),"%)"))
-pca1.p
+                  ylab = paste0("PC2 (",round(pcvar[2,2]*100,2),"%)"),
+                  palette =c("#eac435","#557fc3", "#03cea4", "#fb4d3d")
+)
+ggsave("../figures/dapc_PCA.png",pca1.p, h=5, w=5)
 
 # #plot  PC 2 and 3: not informative for this dataset
 pca2.p<-ggscatter(pca1.scores, x = "PC2", y = "PC3", color = "pop",
@@ -56,7 +61,6 @@ pca2.p<-ggscatter(pca1.scores, x = "PC2", y = "PC3", color = "pop",
                   ylab = paste0("PC3 (",round(pcvar[3,2]*100,2),"%)"))
 pca2.p
 
-#ggsave("../Final_plots/Uro_Full_PCA_Axes1_2.svg",pca1.p,width=16,height=16,dpi=600,units="cm")
 
 ############ ----------------------------------------------------------------
 
@@ -69,11 +73,11 @@ grp <- find.clusters(genl, n.pca=3, max.n.clust=40)
 dapc1 <- dapc(genl, genl@pop, n.pca=3, n.da=4)
 
 #temp <- optim.a.score(dapc1)
-col.in <- c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF")
+col.in <- c("#eac435","#557fc3", "#03cea4", "#fb4d3d")
 scatter.dapc(dapc1)
 scatter.dapc(dapc1, grp=genl@pop)
 
-pdf(file="../figures/dapc.4.pdf", h=4, w=4)
+png(file="../figures/dapc.4.png", h=4, w=4, units="in", res=300)
 scatter(dapc1, grp=genl@pop, 
         bg="white", pch=c(15,19,17,18), col=col.in,
         cex=2,
@@ -101,25 +105,13 @@ dapc2 <- dapc(genl2, genl2@pop, n.pca=1, n.da=2)
 scatter(dapc2)
 scatter.dapc(dapc2, grp=genl2@pop)
 
-pdf(file="../figures/dapc.2.pdf", h=4, w=4)
+png(file="../figures/dapc.2.png", h=4, w=4, units="in", res=300)
 scatter(dapc2, grp=genl2@pop, posi.da="bottomright", 
         bg="white", pch=17:22, col=col.in,
         cex=2,
         cstar=0,clab=0,
         scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="topright")
 dev.off()
-
-
-
-library("poppr")
-pramx <- xvalDapc(tab(genl, NA.method = "mean"), pop(genl))
-
-names(pramx)
-pramx[-1]
-
-scatter(pramx$DAPC, cex = 2, legend = TRUE,
-        clabel = FALSE, posi.leg = "bottomleft", scree.pca = TRUE,
-        posi.pca = "topleft", cleg = 0.75, xax = 1, yax = 2, inset.solid = 1)
 
 
 
@@ -164,7 +156,9 @@ table.value(table(pred.sup$assign, pop(x.sup)), col.lab=levels(pop(x.sup)))
 
 # loop to get some estimate of accuracy
 n=100
-acc.out <- rep(NA, n)
+acc.out.4 <- rep(NA, n)
+df.out.4 <- as.data.frame(matrix(nrow=n, ncol=4))
+colnames(df.out.4) <- c("Atlantic", "DryTortuga", "NGOMex", "WGOMex")
 
 for(i in 1:n){
   # leave out ~30% of samples. 61 indivs. so select 43 to keep (drop 18)
@@ -172,15 +166,40 @@ for(i in 1:n){
   x <- genl[kept.id,]
   x.sup <- genl[!1:nInd(genl) %in% kept.id,]
   # run dapc
-  dapc4 <- dapc(x ,n.pca=3,n.da=4)
+  dapc4 <- dapc(x , x@pop,n.pca=3,n.da=4)
   pred.sup <- predict.dapc(dapc4, newdata=x.sup )
 
   # calculate accuracy of assignments. i.e., is anything coming from its actual population
-  acc.out[i] <- mean(as.character(pred.sup$assign)==as.character(pop(x.sup)))
+  acc.out.4[i] <- mean(as.character(pred.sup$assign)==as.character(pop(x.sup)))
+  
+  # get accuracy by population
+  #
+  Atlantic.tmp <- which(as.character(pop(x.sup)) == "Atlantic")
+  if(length(Atlantic.tmp) > 0){
+    df.out.4$Atlantic[i] <- mean(as.character(pred.sup$assign[Atlantic.tmp])==as.character(pop(x.sup[Atlantic.tmp])))
+  }
+  Tortuga.tmp <- which(as.character(pop(x.sup)) == "Dry Tortuga")
+  if(length(Tortuga.tmp) > 0){
+    df.out.4$DryTortuga[i] <- mean(as.character(pred.sup$assign[Tortuga.tmp])==as.character(pop(x.sup[Tortuga.tmp])))
+  }
+  NGOMex.tmp <- which(as.character(pop(x.sup)) == "NGOMex")
+  if(length(NGOMex.tmp) > 0){
+    df.out.4$NGOMex[i] <- mean(as.character(pred.sup$assign[NGOMex.tmp])==as.character(pop(x.sup[NGOMex.tmp])))
+  }
+  WGOMex.tmp <- which(as.character(pop(x.sup)) == "WGOMex")
+  if(length(WGOMex.tmp) > 0){
+    df.out.4$WGOMex[i] <- mean(as.character(pred.sup$assign[WGOMex.tmp])==as.character(pop(x.sup[WGOMex.tmp])))
+  }
   if(i%%50 ==0){print(i)}
 }
 
-boxplot(acc.out)
+boxplot(acc.out.4)
+
+png(filename = "../figures/dapc.4pcs.accuracyPops.png", h=6, w=6, units="in", res=300)
+boxplot(df.out.4, ylab="Proportion correct assignment",
+        col=c("#eac435","#557fc3", "#03cea4", "#fb4d3d"))
+dev.off()
+
 #####
 # repeat for k=2
 
@@ -193,27 +212,166 @@ for(i in 1:n){
   x <- genl2[kept.id,]
   x.sup <- genl2[!1:nInd(genl2) %in% kept.id,]
   # run dapc
-  dapc4 <- dapc(x ,n.pca=3,n.da=4)
-  pred.sup <- predict.dapc(dapc4, newdata=x.sup )
+  dapc2 <- dapc(x, x@pop, n.pca=1, n.da=2)
+  # run prediction
+  pred.sup <- predict.dapc(dapc2, newdata=x.sup )
   
   # calculate accuracy of assignments. i.e., is anything coming from its actual population
   acc.out.2[i] <- mean(as.character(pred.sup$assign)==as.character(pop(x.sup)))
   if(i%%50 ==0){print(i)}
 }
 
-dplot <- data.frame(k = c(rep("4", length(acc.out)),rep("2", length(acc.out.2))),
-          accuracy = c(acc.out,acc.out.2)
-            )
 
+
+
+####-------------------------------------------------------------------------------
+# find optimal PCs
+
+# 4 groups
+
+# Calculate optimal number of PCs 
+dapcTemp <- dapc(genl, genl@pop, 
+                        n.pca=60, n.da = 3)   # n.da = 4(species) - 1 = 3
+ascores <- optim.a.score(dapcTemp, smart = FALSE, n.sim = 50)   # Optimal number of PCs: 17
+
+dapc4 <- dapc(genl, genl@pop, 
+            n.pca=17, n.da = 3)
+
+scatter(dapc4)
+
+library("poppr")
+pramx <- xvalDapc(tab(genl, NA.method = "mean"), pop(genl))
+
+names(pramx)
+pramx[-1]
+
+
+scatter(pramx$DAPC, cex = 2, legend = TRUE,
+        clabel = FALSE, posi.leg = "bottomleft", scree.pca = TRUE,
+        posi.pca = "topright", cleg = 0.75, xax = 1, yax = 2, inset.solid = 1)
+
+png(file="../figures/dapc.4.17pcs.png", h=4, w=4, units="in", res=300)
+scatter(dapc4, grp=genl@pop, 
+        bg="white", pch=c(15,19,17,18), col=col.in,
+        cex=2,
+        cstar=0,clab=0,
+        scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="bottomleft")
+
+dev.off()
+
+
+# now can we actually discriminate?
+
+# loop to get some estimate of accuracy
+n=100
+acc.out.4.16pcs <- rep(NA, n)
+
+for(i in 1:n){
+  # leave out ~30% of samples. 61 indivs. so select 43 to keep (drop 18)
+  kept.id <- sample(1:nInd(genl), size=43, replace=F)
+  x <- genl[kept.id,]
+  x.sup <- genl[!1:nInd(genl) %in% kept.id,]
+  # run dapc
+  dapc4 <- dapc(x, x@pop,n.pca=17,n.da=3)
+  pred.sup <- predict.dapc(dapc4, newdata=x.sup )
+  
+  # calculate accuracy of assignments. i.e., is anything coming from its actual population
+  acc.out.4.16pcs[i] <- mean(as.character(pred.sup$assign)==as.character(pop(x.sup)))
+  if(i%%50 ==0){print(i)}
+}
+
+boxplot(acc.out.4.16pcs)
+
+
+# ------------------------------------------------------------------------------
+# k = 2 from infer:
+
+grp <- find.clusters(genl2, max.n.clust=40)
+# keep all the pcs: 60
+# lowest BIC is 2. use this
+dapc1 <- dapc(genl2, grp$grp)
+# keep 35- 80% rule
+# keep 2 discriminant functions
+scatter(dapc1)
+
+
+# Calculate optimal number of PCs 
+dapcTemp <- dapc(genl2, genl2@pop, 
+                 n.pca=60, n.da = 1)   # n.da = 4(species) - 1 = 3
+ascores <- optim.a.score(dapcTemp, smart = FALSE, n.sim = 50)   # Optimal number of PCs: 5
+  # but looks terrible
+
+library("poppr")
+pramx <- xvalDapc(tab(genl2, NA.method = "mean"), pop(genl2)) # also says 5 pcs
+
+names(pramx)
+pramx[-1]
+
+
+scatter(pramx$DAPC, cex = 2, legend = TRUE,
+        clabel = FALSE, posi.leg = "bottomleft", scree.pca = TRUE,
+        posi.pca = "topleft", cleg = 0.75, xax = 1, yax = 2, inset.solid = 1)
+
+dapc2 <- dapc(genl2, genl2@pop, 
+              n.pca=5, n.da = 1)
+scatter(dapc2)
+
+png(file="../figures/dapc.2.5pcs.png", h=4, w=4, units="in", res=300)
+scatter(dapc2, grp=genl2@pop, 
+        bg="white", pch=c(15,19,17,18), col=col.in,
+        cex=2,
+        cstar=0,clab=0,
+        scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="bottomleft")
+
+dev.off()
+
+
+# now can we actually discriminate?
+
+# loop to get some estimate of accuracy
+n=100
+acc.out.2.5pcs <- rep(NA, n)
+
+for(i in 1:n){
+  # leave out ~30% of samples. 61 indivs. so select 43 to keep (drop 18)
+  kept.id <- sample(1:nInd(genl2), size=43, replace=F)
+  x <- genl2[kept.id,]
+  x.sup <- genl2[!1:nInd(genl2) %in% kept.id,]
+  # run dapc
+  dapc2 <- dapc(x, x@pop,n.pca=5,n.da=1)
+  # run prediction
+  pred.sup <- predict.dapc(dapc2, newdata=x.sup )
+  
+  # calculate accuracy of assignments. i.e., is anything coming from its actual population
+  acc.out.2.5pcs[i] <- mean(as.character(pred.sup$assign)==as.character(pop(x.sup)))
+  if(i%%50 ==0){print(i)}
+}
+
+boxplot(acc.out.2.5pcs)
+
+
+
+#-----------------------------------------------------------------
+# plot results
+
+dplot <- data.frame(k = c(rep("4pops.3pcs", length(acc.out.4)),
+                          rep("2pops.1pcs", length(acc.out.2)),
+                          rep("4pops.17pcs", length(acc.out.4.16pcs)),
+                          rep("2pops.5pcs", length(acc.out.2.5pcs))
+                          ),
+                    accuracy = c(acc.out.4,acc.out.2,acc.out.4.16pcs,acc.out.2.5pcs)
+                    )
+dplot$k <- factor(dplot$k, levels=c("2pops.1pcs", "2pops.5pcs", "4pops.3pcs", "4pops.17pcs"))
 library(ggplot2)
 library(ggbeeswarm)
 
 p <- ggplot(data=dplot, aes(x=k, y=accuracy)) +
-  geom_boxplot(fill="grey60") +
+  geom_violin(fill="grey60") +
+  geom_boxplot(fill="grey60", width=0.2) +
   theme_bw(base_size = 14) +
   ylim(0,1) + 
   xlab("k number")
-
+p
 
 ggsave(file="../figures/dapc_accuracy.pdf", p, h=5, w=5)
 ggsave(file="../figures/dapc_accuracy.png", p, h=5, w=5)
@@ -227,8 +385,8 @@ result <- dplot %>%
   )
 result
 
-#  k     mean_value  sdev     se
-#  2        0.519   0.134   0.0134
-#  4        0.243   0.103   0.0103
-
-
+k   #PCs        mean_value   sdev      se
+2  1       0.453 0.103  0.0103 
+2  5       0.547 0.127  0.0127 
+4  3        0.231 0.0818 0.00818
+4 17      0.278 0.104  0.0104 
