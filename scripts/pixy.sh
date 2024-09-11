@@ -22,6 +22,6 @@ cd ~/spermWhaleRad/analysis/diversity/
 pixy --stats pi fst dxy \
 --vcf ../freebayes/combined_filtered_invariant.vcf.gz \
 --populations ~/spermWhaleRad/scripts/populations.txt \
---window_size 10000 \
+--window_size 1000 \
 --n_cores 14 \
---output_prefix 10kb
+--output_prefix 1kb
