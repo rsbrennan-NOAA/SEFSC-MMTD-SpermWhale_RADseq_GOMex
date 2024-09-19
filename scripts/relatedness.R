@@ -134,3 +134,8 @@ p
 
 ggsave("../figures/population_relatedness.pdf", p, h=5, w=7)
 ggsave("../figures/population_relatedness.png", p, h=5, w=7)
+
+
+# ------------------------------------------------------------------------------
+# look at sex and relatedness.
+
