@@ -201,6 +201,9 @@ df$row_names <- rownames(lc_mat)
 df_long <- df %>%
   pivot_longer(cols = -row_names, 
                names_to = "column", 
-               values_to = "value")
+               values_to = "distance_km")
+colnames(df_long)<- c("indiv_1", "indiv_2", "distance_km")
+df_long <- df_long[which(df_long$indiv_1 != df_long$indiv_2),]
+head(df_long)
 
-write.csv(lc_mat, file="lc_distances_km.csv")
+write.csv(df_long, file="../lc_distances_km.csv")

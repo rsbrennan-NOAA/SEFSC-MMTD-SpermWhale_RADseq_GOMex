@@ -135,7 +135,54 @@ p
 ggsave("../figures/population_relatedness.pdf", p, h=5, w=7)
 ggsave("../figures/population_relatedness.png", p, h=5, w=7)
 
+out <- dat[,c("id_a", "id_b", "theta", "KING")]
+
+out.order <- out[order(out$theta, decreasing=T),]
+head(out.order)
+
+write.csv(out.order, file="../relatedness.csv", quote=F,row.names=F)
 
 # ------------------------------------------------------------------------------
-# look at sex and relatedness.
+# Relationship between distance and relatedness:
 
+df_dist <- read.csv("../lc_distances_km.csv")
+head(df_dist)
+colnames(df_dist) <- c("id_a", "id_b", "distance_km")
+
+dat$id_a == df_dist$id_a & dat$id_b == df_dist$id_b | dat$id_a == df_dist$id_b & dat$id_b == df_dist$id_a
+
+for(i in 1:nrow(dat)){
+  dat$dist[i] <- df_dist$distance_km[which(df_dist$id_a == dat$id_a[i] & df_dist$id_b == dat$id_b[i])]
+}
+
+dat$dist <- as.numeric(dat$dist)
+# one pair is 0, change this to 1 for plotting:
+dat$dist[dat$dist == 0] <- 1
+
+ggplot(dat, aes(x=(dist), y=(theta))) +
+  geom_point() +
+  geom_smooth(method="lm")
+
+ggplot(dat, aes(x=log10(dist), y=(theta))) +
+  geom_point() +
+  geom_smooth(method="lm")
+
+dat[(!is.finite(log10(as.numeric(dat$dist)))),]
+
+# exponential decay
+theta.0 <- min(dat$theta) * 0.5  
+
+# Estimate the rest parameters using a linear model
+model.0 <- lm((theta) ~ log(dist), data=dat)  
+alpha.0 <- exp(coef(model.0)[1])
+beta.0 <- coef(model.0)[2]
+dat$relatedness <- dat$theta
+
+# Starting parameters
+start <- list(alpha = alpha.0, beta = beta.0, theta = theta.0)
+start
+
+model <- nls(relatedness ~ alpha * exp(beta * dist) + theta , data = dat, start = start)
+plot(dat$dist, dat$relatedness)
+lines(dat$dist, predict(model, list(x = dat$dist)), col = 'skyblue', lwd = 3)
+  

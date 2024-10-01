@@ -21,11 +21,10 @@ cd /mnt/c/Users/Reid.Brennan/Documents/projects/radSeq/raw_data
 nextflow run scripts/fastqc.nf --input_dir ./raw_data/ --outdir ./fastqc_pre_trim -with-tower -resume
 
 ```
+nextflow run scripts/fastqc.nf --input_dir ./raw_data_original/ --outdir ./fastqc_original_data -resume
 
-
-really bad adapter contamination. quality looks good otherwise.
+adapter contamination. quality looks good otherwise.
 Nextera transposase
-
 
 ## rename files
 

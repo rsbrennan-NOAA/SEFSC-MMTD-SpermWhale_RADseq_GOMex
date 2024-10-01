@@ -18,9 +18,9 @@ ggsave("../figures/cv.png", p, h=3, w=3)
 
 # actual results:
 
-samplelist <- read_delim("variants_NoLD.fam",
-                       col_names = c("individual", "id2", "a", "b", "c", "d"),
-                       delim=" ")
+samplelist <- read_delim("LDthin_numCorrect.fam",
+                         col_names = c("individual", "id2", "a", "b", "c", "d"),
+                         delim=" ")
 
 # read in all date, in a loop
 ## first create an empty dataframe
@@ -41,11 +41,21 @@ for (k in 2:8){
   all_data <- rbind(all_data,data)
 }
 
-# add the population label
-#all_data$population <- substr(all_data$sample, 1, 2)
-#all_data$population <- factor(all_data$population, 
-#                              levels=c("GA", "PL", "HP", "BC", "PC", "TR"))
+pops <- read.csv("../SW_Metadata.csv")
 
+all_data$IDs <- gsub("b", "",all_data$sample)
+
+result <- all_data %>%
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
+
+all_data <- result
+pop_sub <- pops[pops$Lab.ID.. %in% result$IDs,]
+
+# order samples by population:
+sampleorder <- pop_sub$Lab.ID..[order(pop_sub$Pop.Structure.Location)]
+all_data$IDs <- as.factor(all_data$IDs)
+all_data$IDs <- factor(all_data$IDs, levels=sampleorder)
+all_data$sample <- all_data$IDs
 # our orders are off in our vcf. lets re-order these from south to north. 
 #orderlist <- read_tsv("~/shared_materials/tutorial_files/population_order.txt",
 #                      col_names = "sample")
@@ -54,30 +64,147 @@ for (k in 2:8){
 all_data %>%
   filter(k == 2) %>%
   ggplot(.,aes(x=sample,y=value,fill=factor(Q))) + 
-  #geom_rug(aes(x=sample, y=value, color=population)) +
+  geom_rug(aes(x=sample, y=value, color=Pop.Structure.Location)) +
   geom_bar(stat="identity",position="stack") +
   xlab("Sample") + ylab("Ancestry") +
   theme_bw() +
+  scale_color_manual(values=c("#eac435","#557fc3", "#03cea4", "#fb4d3d"))+
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_brewer(palette="Set1",name="K",                    
                     labels=c("1","2"))
 
+library(dplyr)
+library(forcats)
+# within each population, order indivs by q val
+new_dat<- all_data[all_data$k == 2 & all_data$Q == "Q1",]
+
+new_dat2 <- new_dat %>%
+  mutate(sample = fct_reorder2(sample, Pop.Structure.Location, value)) %>%
+  arrange(Pop.Structure.Location, value)
+
+all_data$sample <- factor(all_data$sample, levels=c(new_dat2$sample))
+all_data$k <- as.numeric(all_data$k)
 
 p <-  
   all_data %>%
   filter(k < 4) %>%
   ggplot(.,aes(x=sample,y=value,fill=factor(Q))) + 
+  geom_rug(aes(x=sample, y=value, color=Pop.Structure.Location),
+           linewidth = 4, 
+           sides="b") +
   geom_bar(stat="identity",position="stack") +
   xlab("Sample") + ylab("Ancestry") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-  scale_fill_brewer(palette="Set1",name="K",
-                    labels=seq(1:5)) +
+  scale_color_manual(values = c("#eac435", "#557fc3", "#03cea4", "#fb4d3d"),
+                     name = "Population Structure Location") +
+  scale_fill_brewer(palette = "Set1", name = "K", labels = c("1", "2")) +
   facet_wrap(~k,ncol=1)
 p
 
 ggsave("../figures/Admixture_plot.pdf", p, width = 10, height = 9, units="in")
+ggsave("../figures/Admixture_plot.png", p, width = 10, height = 9, units="in")
 
+
+
+
+
+
+##############
+# females
+
+#admixture
+library(tidyverse)
+
+setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis")
+
+# actual results:
+
+samplelist <- read_delim("../female_ids.txt",
+                         col_names = c("individual"),
+                         delim=" ")
+
+# read in all date, in a loop
+## first create an empty dataframe
+all_data <- tibble(individual=character(),
+                   k=numeric(),
+                   Q=character(),
+                   value=numeric())
+
+# then add all results to this
+for (k in 2){
+  data <- read_delim(paste0("../female_qvalues.",k,".Q"),
+                     col_names = paste0("Q",seq(1:k)),
+                     delim=" ")
+  data$sample <- samplelist$individual
+  data$k <- k
+  #This step converts from wide to long.
+  data %>% gather(Q, value, -sample,-k) -> data
+  all_data <- rbind(all_data,data)
+}
+pops <- read.csv("../SW_Metadata.csv")
+
+all_data$IDs <- gsub("b", "",all_data$sample)
+
+result <- all_data %>%
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
+
+all_data <- result
+pop_sub <- pops[pops$Lab.ID.. %in% result$IDs,]
+
+# order samples by population:
+sampleorder <- pop_sub$Lab.ID..[order(pop_sub$Pop.Structure.Location)]
+all_data$IDs <- as.factor(all_data$IDs)
+all_data$IDs <- factor(all_data$IDs, levels=sampleorder)
+all_data$sample <- all_data$IDs
+# our orders are off in our vcf. lets re-order these from south to north. 
+#orderlist <- read_tsv("~/shared_materials/tutorial_files/population_order.txt",
+#                      col_names = "sample")
+#all_data$sample<-factor(all_data$sample,levels=orderlist$sample)
+
+all_data %>%
+  filter(k == 2) %>%
+  ggplot(.,aes(x=sample,y=value,fill=factor(Q))) + 
+  geom_rug(aes(x=sample, y=value, color=Pop.Structure.Location)) +
+  geom_bar(stat="identity",position="stack") +
+  xlab("Sample") + ylab("Ancestry") +
+  theme_bw() +
+  scale_color_manual(values=c("#eac435","#557fc3", "#03cea4", "#fb4d3d"))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_fill_brewer(palette="Set1",name="K",                    
+                    labels=c("1","2"))
+
+library(dplyr)
+library(forcats)
+# within each population, order indivs by q val
+new_dat<- all_data[all_data$k == 2 & all_data$Q == "Q1",]
+
+new_dat2 <- new_dat %>%
+  mutate(sample = fct_reorder2(sample, Pop.Structure.Location, value)) %>%
+  arrange(Pop.Structure.Location, value)
+
+all_data$sample <- factor(all_data$sample, levels=c(new_dat2$sample))
+all_data$k <- as.numeric(all_data$k)
+
+p <-  
+  all_data %>%
+  filter(k < 4) %>%
+  ggplot(.,aes(x=sample,y=value,fill=factor(Q))) + 
+  geom_rug(aes(x=sample, y=value, color=Pop.Structure.Location),
+           linewidth = 4, 
+           sides="b") +
+  geom_bar(stat="identity",position="stack") +
+  xlab("Sample") + ylab("Ancestry") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  scale_color_manual(values = c("#eac435", "#557fc3", "#03cea4", "#fb4d3d"),
+                     name = "Population Structure Location") +
+  scale_fill_brewer(palette = "Set1", name = "K", labels = c("1", "2")) +
+  facet_wrap(~k,ncol=1)
+p
+
+ggsave("../figures/Admixture_plot_females.pdf", p, width = 10, height = 9, units="in")
+ggsave("../figures/Admixture_plot_females.png", p, width = 10, height = 9, units="in")
 
 
 
