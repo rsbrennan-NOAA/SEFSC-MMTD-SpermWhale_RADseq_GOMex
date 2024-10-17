@@ -362,6 +362,9 @@ dplot <- data.frame(k = c(rep("4pops.3pcs", length(acc.out.4)),
                     accuracy = c(acc.out.4,acc.out.2,acc.out.4.16pcs,acc.out.2.5pcs)
                     )
 dplot$k <- factor(dplot$k, levels=c("2pops.1pcs", "2pops.5pcs", "4pops.3pcs", "4pops.17pcs"))
+
+write.csv(file="dapc_training_test.csv",dplot, row.names=F)
+
 library(ggplot2)
 library(ggbeeswarm)
 
@@ -385,8 +388,37 @@ result <- dplot %>%
   )
 result
 
-k   #PCs        mean_value   sdev      se
-2  1       0.453 0.103  0.0103 
-2  5       0.547 0.127  0.0127 
-4  3        0.231 0.0818 0.00818
-4 17      0.278 0.104  0.0104 
+#k   #PCs        mean_value   sdev      se
+#2  1       0.453 0.103  0.0103 
+#2  5       0.547 0.127  0.0127 
+#4  3        0.231 0.0818 0.00818
+#4 17      0.278 0.104  0.0104 
+
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# make plots that mirror thia,'s increasing PCs and shifting BIC from negative to positive slope
+
+# df to hold output
+outdf <- as.data.frame(matrix(ncol=3, nrow=0))
+colnames(outdf) <- c("PCs", "K", "BIC")
+for(i in c(3, 10, 20, 40, 60)){
+
+  foo.BIC <- find.clusters(genl, n.pca=i, max.n.clust=30, choose=F)
+  tmpout <- data.frame(PCs = i, 
+                       K = as.numeric(gsub("K=","",names(foo.BIC$Kstat))),
+                       BIC = foo.BIC$Kstat)
+  outdf <- rbind(outdf, tmpout)
+}
+
+
+p <- ggplot(data=outdf, aes(x=K, y=BIC)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(.~PCs)
+p
+ggsave(file="figures/fig3.pdf", w=7, h=4)
+
+
+

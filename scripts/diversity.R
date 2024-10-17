@@ -152,7 +152,7 @@ sum(dat.na$avg_pi == 0)
 sum(dat.sub$count_diffs)/sum(dat.sub$count_comparisons)
 # 0.00136
 mean(dat$avg_pi, na.rm=T)
-# 0.00138 actually pretty similar.
+# 0.00138 
 
 pi <- dat.sub %>%
   group_by(pop) %>%
@@ -277,6 +277,7 @@ gl.test.heterozygosity(genl, nreps=1000)
 
 # -------------------------------------------------------------------------------
 # Fst
+# -------------------------------------------------------------------------------
 
 library(snpR)
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/")
@@ -288,10 +289,10 @@ pops <- read.csv("../SW_Metadata.csv")
 colnames(dat) <- gsub("b", "",colnames(dat))
 ids <- data.frame(IDs = colnames(dat))
 result <- ids %>%
-  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location, Sex), by = c("IDs" = "Lab.ID.."))
 result$Pop.Structure.Location[result$Pop.Structure.Location =="Dry Tortuga"] <- c("Dry_Tortuga")
 
-sample_meta <- data.frame(pop = result$Pop.Structure.Location)
+sample_meta <- data.frame(pop = result$Pop.Structure.Location, sex=result$Sex)
 ## order the population
 #sample_meta$pop <- factor(sample_meta$pop, levels=c("GA", "HP", "BC", "PC", "TR")) 
 
@@ -328,4 +329,82 @@ get.snpR.stats(dat, facets = "pop", stats="fis")
 #2   pop Dry_Tortuga     .base        .base        0.06291019
 #3   pop      NGOMex     .base        .base        0.06533394
 #4   pop      WGOMex     .base        .base        0.05719921
+
+
+#---------------------------------------------
+# fst by sexes:meta()
+meta(dat)
+
+snp.meta(dat)$CHROM <- gsub("\\.1","",snp.meta(dat)$CHROM)
+snp.meta(dat)$CHROM <- gsub("\\.2","",snp.meta(dat)$CHROM)
+
+# calculate fst between the populations
+my.dat <- calc_pairwise_fst(dat, facets="sex", method = "WC")
+
+# first look at the results, just the head
+head(get.snpR.stats(my.dat, facets = "sex", stats = "fst"))
+
+
+snpout <- get.snpR.stats(my.dat, facets = "sex.CHROM", stats = "fst")$pairwise
+table(snpout$CHROM)
+snpout <- snpout[grep("NC_", snpout$CHROM),]
+chr1 <- calc_smoothed_averages(x = my.dat, 
+                               facets = "sex.CHROM",
+                               sigma = 50, # using a window size of 50 kb
+                               step = 10) # using a step size of 10kb between windows
+
+# pull out the smoothed values
+fst_smooth <- get.snpR.stats(chr1, facets = "sex.CHROM", stats ="fst")$pairwise.window
+fst_smooth <- fst_smooth[grep("NC_", fst_smooth$snp.subfacet),]
+
+# make plot
+p <- ggplot(snpout, aes(x = position, y = fst, colour = CHROM)) + 
+  #geom_point(alpha = 0.5) + 
+  theme_bw() +
+  theme(legend.position="none") +
+  ylim(-0.04,1)+  
+  geom_line(data=fst_smooth,
+              aes(x=position,y=fst), color="black") +
+  facet_wrap(~snp.subfacet, scales = "free_x")
+
+p
+
+
+
+
+
+
+chrplot <- snpout$pairwise[grep("NC",snpout$pairwise$CHROM),]
+plot_manhattan(chrplot, "fst", chr="CHROM")
+
+calc_smoothed_averages()
+
+sub7 <- calc_smoothed_averages(x = sub7, facets = "pop.chr",
+                               sigma = 200, # using a window size of 200
+                               step = 50) # using a step size of 50 between windows
+
+snpout$fst.matrix$pop
+mean(filter(snpout$pairwise, comparison=="Atlantic~Dry_Tortuga")$fst, na.rm=T)
+tmp <- filter(snpout$pairwise, comparison=="Atlantic~Dry_Tortuga")$fst
+tmp[which(tmp <0)] <- 0
+mean(tmp, na.rm=T)
+
+# heatmap of the fst estimates:
+png("../figures/fst_heatmap.png", h=4, w=4, units="in", res=300)
+plot_pairwise_fst_heatmap(my.dat, facets="pop")
+dev.off()
+
+
+dat <- calc_ho(dat, facets="pop")
+dat <- calc_fis(dat, facets="pop")
+
+get.snpR.stats(dat, facets = "pop", stats="ho")
+get.snpR.stats(dat, facets = "pop", stats="fis")
+#facet    subfacet snp.facet snp.subfacet weighted_mean_fis
+#1   pop    Atlantic     .base        .base        0.10168761
+#2   pop Dry_Tortuga     .base        .base        0.06291019
+#3   pop      NGOMex     .base        .base        0.06533394
+#4   pop      WGOMex     .base        .base        0.05719921
+
+
 

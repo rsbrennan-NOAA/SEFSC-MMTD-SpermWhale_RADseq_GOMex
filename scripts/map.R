@@ -41,11 +41,12 @@ pltpt <- data.frame(
 p <- ggplot() +
   geom_sf(data = world, fill = "grey90", color = "grey70") +
   geom_sf(data = usa, fill = NA, color = "grey70") +
-  geom_point(data = pltpt, aes(x = lon, y = lat, fill=region), 
-             shape= 21, color="black", size = 2.5) +
-  scale_fill_manual(values=c("#eac435","#557fc3", "#03cea4", "#fb4d3d"))+
+  geom_point(data = pltpt, aes(x = lon, y = lat, fill=region, shape=region), 
+             color="black", size = 2.5) +
+  scale_fill_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,22,23,24))+
   coord_sf() +
-  theme_bw() +
+  theme_bw(base_size=14) +
   theme(
     #panel.background = element_rect(fill = "white"),
     panel.grid = element_blank(),
@@ -55,7 +56,7 @@ p <- ggplot() +
   legend.title=element_blank()) +
   xlab("latitude")+
   ylab("longitude") +
-  coord_sf(xlim = c(-100, -62), ylim = c(20, 45), expand = FALSE)
+  coord_sf(xlim = c(-100, -65), ylim = c(22, 43), expand = FALSE)
 p
   
 ggsave("figures/map.pdf", p, h=4, w=5)
@@ -206,4 +207,4 @@ colnames(df_long)<- c("indiv_1", "indiv_2", "distance_km")
 df_long <- df_long[which(df_long$indiv_1 != df_long$indiv_2),]
 head(df_long)
 
-write.csv(df_long, file="../lc_distances_km.csv")
+write.csv(df_long, file="../lc_distances_km.csv", row.names=F)

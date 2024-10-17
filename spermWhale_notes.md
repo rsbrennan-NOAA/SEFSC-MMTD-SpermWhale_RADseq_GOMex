@@ -240,7 +240,249 @@ In order to choose a threshold value for thinning in the pruning step, linkage d
 
 # effective population size
 
-fastsimcoal2? https://www.sciencedirect.com/science/article/pii/S0165783624002108
+### currentNe
+
+use only the major chromosomes, so I know the actual distance between snps.
+currentNe ~/spermWhaleRad/analysis/freebayes/freebayes_unrelated_chr.vcf
+
+~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz
+zcat ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz > ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf
+
+subset the vcf to each of the 4 pops:
+
+check this file: `variants_all_chr_NeFormat.ped` bc different results in current Ne than vcf despite same number of snps, etc.
+
+```bash
+
+module load bio/plink/1.90b6.23 
+
+cd ~/spermWhaleRad/analysis/Ne
+
+# where is the code for pulling out the major chromsoeomes?
+
+
+# need to add snp ids:
+
+filtered.final_ids.vcf.gz
+
+module load bio/bcftools/1.11
+module load lib64/htslib/1.11
+
+tabix ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf 
+bcftools annotate ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz -x ID -I +'%CHROM:%POS' > ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_ids.vcf 
+
+plink --vcf freebayes_all_chr_ids.vcf \
+--recode --out variants_all_chr \
+--allow-extra-chr --double-id --a2-allele freebayes_all_chr_ids.vcf 4 3 '#' --real-ref-alleles 
+
+## test files:
+
+cat freebayes_all_chr_ids.vcf | head -n 600 > test.vcf
+
+~/plink2 --vcf test.vcf --export ped --out plink2_conversion
+
+plink --vcf test.vcf --allow-extra-chr --recode --out plink1_conversion
+head -n1 plink1_conversion.ped | grep -o " " | wc -l
+head -n1 | grep -o "\t" | wc -l
+awk '{print NF; exit}' plink2_conversion.ped 
+
+# run currentNe
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe plink1_conversion.ped 4 -o plink1_conversion
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe plink2_conversion.ped 4 -o plink2_conversion
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe test.vcf 4 -o vcf_input
+
+## plink
+
+## plink2
+
+
+~/plink2 --vcf ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_ids.vcf --export ped
+
+module load bio/vcftools/0.1.16
+
+cp freebayes_all_chr.vcf freebayes_all_chr_mod.vcf
+
+sed -i 's/NC_041214.2/1/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041215.1/2/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041216.1/3/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041217.1/4/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041218.1/5/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041219.1/6/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041220.1/7/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041221.1/8/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041222.1/9/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041223.1/10/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041224.1/11/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041225.1/12/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041226.1/13/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041227.1/14/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041228.1/15/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041229.1/16/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041230.1/17/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041231.1/18/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041232.1/19/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041233.1/20/g' freebayes_all_chr_mod.vcf
+sed -i 's/NC_041234.1/21/g' freebayes_all_chr_mod.vcf
+
+vcftools --vcf ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_mod.vcf --out my_data --plink
+
+plink --vcf ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_mod.vcf  \
+--recode --out variants_all_chr_mod_plink1 \
+--allow-extra-chr --double-id
+
+~/plink2 --vcf freebayes_all_chr_mod.vcf --export ped --out variants_all_chr_mod_plink2
+
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe freebayes_all_chr_mod.vcf 21 -o vcf.out
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe my_data.ped 21 -o vcftools_ped.out
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_mod_plink1.ped 21 -o plink1_ped.out
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_mod_plink2.ped 21 -o plink2_ped.out
+
+
+
+
+
+
+
+
+
+
+
+
+awk '$6=-9' variants_all_chr_NeFormat-old.ped > variants_all_chr_NeFormat-old2.ped 
+
+sed 's/\t/ /g' my_data.ped > my_data2.ped
+sed 's/\t/ /g' my_data.map > my_data2.map
+~/spermWhaleRad/analysis/Ne/currentNe/currentNe ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf 21 -o allindivs
+
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe my_data2.ped 21 -o my_data_ped
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe my_data2.ped 21 -o my_data_ped
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe plink2.ped 21 -o oldplink
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_NeFormat-old2.ped 21 -o old2
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_NeFormat.ped 21 -k 0.05 -o allindivs_withK
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_NeFormat.ped 21 -k -0.05 -o allindivs_withK
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_NeFormat.ped 21 -k -0.1 -o allindivs_withK
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_NeFormat.ped 21 -k -0.11 -o allindivs_withK
+ ~/spermWhaleRad/analysis/Ne/currentNe/currentNe variants_all_chr_NeFormat.ped 21 -k -0.11 -o allindivs_withK
+
+```
+
+
+no siblings specified:
+
+
+specify the average number of full siblings in the sample: -k -0.12
+
+~/spermWhaleRad/analysis/Ne/currentNe/currentNe
+
+### NeEstimator:
+
+waples says do no remove relatives. this will increase the estimate upwards. See preprint of his, "Idiot's guide..."
+
+#### subset to only chr of interest and LD thin
+
+```bash
+module load bio/vcftools/0.1.16
+module load bio/plink/1.90b6.23
+
+cd ~/spermWhaleRad/analysis/freebayes
+
+zcat freebayes_unrelated_chr.vcf.gz > freebayes_unrelated_chr_mod.vcf
+
+sed -i 's/NC_041214.2/1/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041215.1/2/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041216.1/3/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041217.1/4/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041218.1/5/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041219.1/6/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041220.1/7/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041221.1/8/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041222.1/9/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041223.1/10/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041224.1/11/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041225.1/12/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041226.1/13/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041227.1/14/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041228.1/15/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041229.1/16/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041230.1/17/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041231.1/18/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041232.1/19/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041233.1/20/g' freebayes_unrelated_chr_mod.vcf
+sed -i 's/NC_041234.1/21/g' freebayes_unrelated_chr_mod.vcf
+
+module load bio/bcftools/1.11
+module load bio/htslib/1.19
+
+cp ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_mod.vcf ~/spermWhaleRad/analysis/freebayes
+
+bgzip freebayes_unrelated_chr_mod.vcf > freebayes_unrelated_chr_mod.vcf.gz
+bgzip freebayes_all_chr_mod.vcf > freebayes_all_chr_mod.vcf.gz
+
+tabix freebayes_unrelated_chr_mod.vcf.gz
+tabix freebayes_all_chr_mod.vcf.gz
+
+bcftools annotate freebayes_unrelated_chr_mod.vcf.gz -x ID -I +'%CHROM:%POS' > freebayes_unrelated_chr_mod_ids.vcf
+bcftools annotate freebayes_all_chr_mod.vcf.gz -x ID -I +'%CHROM:%POS' > freebayes_all_chr_mod_ids.vcf
+
+plink --vcf freebayes_unrelated_chr_mod_ids.vcf \
+--indep-pairwise 50 5 0.2 --allow-extra-chr --double-id \
+--out variants_pruned_chr
+plink --vcf freebayes_all_chr_mod_ids.vcf \
+--indep-pairwise 50 5 0.2 --allow-extra-chr --double-id \
+--out variants_pruned_chr_all
+
+vcftools --vcf freebayes_unrelated_chr_mod_ids.vcf  --snps variants_pruned_chr.prune.in --recode --recode-INFO-all --stdout |  bgzip >  freebayes_unrelated_chr_mod_ids_ldthin.vcf.gz
+vcftools --vcf freebayes_all_chr_mod_ids.vcf  --snps variants_pruned_chr_all.prune.in --recode --recode-INFO-all --stdout >  freebayes_all_chr_mod_ids_ldthin.vcf.gz
+
+zcat freebayes_all_chr_mod_ids_ldthin.vcf.gz | grep -v "^#" | wc -l
+
+```
+
+subset the vcf to each of the 4 pops:
+thin for physical LD
+
+```r
+
+library(dartR.popgen)
+# Correct estimates based on the number of chromosomes
+nes <- gl.LDNe(pops,   outfile = "popsLD.txt",  neest.path = path.binaries,
+  critical = c(0, 0.05), singleton.rm = TRUE, mating = "random",
+  Waples.correction='nChromosomes', Waples.correction.value=22) 
+
+```
+
+
+
+
+### GONE:
+
+format map file: !!!!!!!! I THINK THIS IS CAUSING PROBLEMS!!!!!!!!
+`python /mnt/c/Users/Reid.Brennan/Documents/projects/spermWhaleRad/git_repo/SpermWhaleRad/scripts/GONE_map_format.py`
+
+all found here: ~/spermWhaleRad/analysis/Ne
+
+```bash
+
+
+
+#subset to only indivs within a pop:
+vcftools --vcf freebayes_all_chr.vcf.gz --remove ~/spermWhaleRad/analysis/relatedness/relatedindivs.txt  --recode --recode-INFO-all --stdout  > LDthin_numCorrect_nonrelated.vcf
+
+plink --vcf freebayes_all_chr.vcf.gz \
+--make-bed --out variants_all_chr \
+--allow-extra-chr --double-id
+
+```
+
+freebayes_all_chr.vcf.gz
+variants_all_chr_NeFormat.ped
+
+need to drop chr names, etc to work with GONE.
+GONE_map_format.py
+variants_all_chr_NeFormat.map
+
+INPUT_PARAMETERS_FILE
+
 
 # Fst
 

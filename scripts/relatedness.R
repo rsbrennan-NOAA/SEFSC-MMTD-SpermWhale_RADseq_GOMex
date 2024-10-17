@@ -1,5 +1,7 @@
 library(tidyverse)
 library(scales)
+library(ggbeeswarm)
+
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis")
 
 dat <- read.table("relatedness.res", header=T)
@@ -108,28 +110,27 @@ dat <- dat %>%
     (pop_a == "Dry Tortuga" & pop_b == "NGOMex") | (pop_a == "NGOMex" & pop_b == "Dry Tortuga") ~ "DryTortuga_NGOMex",
     (pop_a == "WGOMex" & pop_b == "NGOMex") | (pop_a == "NGOMex" & pop_b == "WGOMex") ~ "WGOMex_NGOMex",
     
-    # Add more conditions as needed
     TRUE ~ "other"  # Default case
   ))
 
 dat$comp_color <- dat$comparison
 
-dat$comp_color <- ifelse(dat$pop_a != dat$pop_b, "between_pop", dat$comparison)
+dat$comp_color <- ifelse(dat$pop_a != dat$pop_b, "Between Population", dat$comparison)
 
-library(ggridges)
-ggplot(dat, aes(x=theta, y=comparison, fill=comparison, height = stat(density))) + 
-  geom_density_ridges(stat = "binline", bins = 30, scale = 0.95, draw_baseline = FALSE)
 
-library(ggbeeswarm)
-p <- ggplot(dat, aes(x=comparison, y=theta, color=comp_color)) + 
+p <- ggplot(dat, aes(x=comparison, y=theta, 
+                    fill=comp_color,color=comp_color, shape=comp_color)) + 
   geom_quasirandom() +
   geom_violin(color="black", fill=NA) +
   theme_bw(base_size=14) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
         legend.position = "top",
         legend.title = element_blank())+
-  scale_color_manual(values=c("#eac435","grey75","#557fc3", "#03cea4", "#fb4d3d"))+
-    xlab(NULL) 
+  scale_color_manual(values=c("#E69F00", "grey75","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values=c("#E69F00", "grey75","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24))+    
+  xlab(NULL) +
+  guides(color = guide_legend(override.aes = list(size = 5)))
 p  
 
 ggsave("../figures/population_relatedness.pdf", p, h=5, w=7)
@@ -143,7 +144,12 @@ head(out.order)
 write.csv(out.order, file="../relatedness.csv", quote=F,row.names=F)
 
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Relationship between distance and relatedness:
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 df_dist <- read.csv("../lc_distances_km.csv")
 head(df_dist)
@@ -158,16 +164,163 @@ for(i in 1:nrow(dat)){
 dat$dist <- as.numeric(dat$dist)
 # one pair is 0, change this to 1 for plotting:
 dat$dist[dat$dist == 0] <- 1
+dat$comp_color <- factor(dat$comp_colo, levels = c("Between Population", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex"))
+custom_sort <- function(x) {
+  factor(x, levels = c("Between Population", unique(x[x != "Between Population"])))
+}
+df_sorted <- dat[order(custom_sort(dat$comp_color)), ]
+
+p <- ggplot(df_sorted, aes(x=(dist), y=theta,fill=comp_color, color=comp_color, shape=comp_color)) +
+  geom_point(size=2) +
+  scale_color_manual(values=c("grey75", "#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values= c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24)) +
+  theme_classic(base_size = 14)+
+  theme(legend.title=element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 4, shape=c(21,21,22,23,24))))+
+  theme(legend.position = c(0.8, 0.8)) +
+  xlab("Ocean Distance") +
+  ylab("Relatedness")
+
+p
+ggsave("../figures/population_relatedness_scatter.pdf", p, h=3, w=5)
+ggsave("../figures/population_relatedness_scatter.png", p, h=3, w=5)
+
+
+
+
+
+
 
 ggplot(dat, aes(x=(dist), y=(theta))) +
   geom_point() +
-  geom_smooth(method="lm")
+  geom_smooth(method="loess")
+
+# subset to related indivs:
+filtered_dat <- dat %>%
+  filter(theta > 0.01)
+
+model_out <- lm(theta ~ log10(dist),data=filtered_dat)
+
+ggplot(dat, aes(x = dist, y = theta)) +
+  geom_point() +
+  geom_line(data = data.frame(dist = filtered_dat$dist, 
+                              fitted = fitted(model_out)),
+            aes(x = dist, y = fitted),
+            size=2, color="dodgerblue3")
+  
 
 ggplot(dat, aes(x=log10(dist), y=(theta))) +
   geom_point() +
   geom_smooth(method="lm")
 
-dat[(!is.finite(log10(as.numeric(dat$dist)))),]
+
+
+############################################
+# stats:
+
+# https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13234
+dat$theta_no0 <- dat$theta
+dat$theta_no0[dat$theta == 0] <- 0.0001
+dat$theta_arc <- asin(sqrt(dat$theta_no0))
+
+hist(dat$theta_arc, breaks=50)
+
+mod1 <- lm(theta_arc ~ dist, data=dat)
+summary(mod1)
+plot(mod1)
+
+model_frac_logit1 <- glm(theta ~ dist, 
+                         data = dat, 
+                         family = quasibinomial())
+
+summary(model_frac_logit1)
+
+plot(model_frac_logit1)
+
+library(betareg)
+model.beta = betareg(theta ~ dist, link = "logit", data=dat)
+summary(model.beta)
+
+plot(model.beta)
+
+dat$theta_no0 <- dat$theta
+dat$theta_no0[dat$theta == 0] <- 0.0001
+
+model.beta = betareg(theta ~ dist, link = "logit", data=dat)
+summary(model.beta)
+
+# zero inflated beta regression
+library(gamlss)
+model_zibeta <- gamlss(theta ~ dist, family = BEZI(), data=dat,
+                       control = gamlss.control(n.cyc = 200))
+summary(model_zibeta)
+plot(model_zibeta)
+
+
+library(nlme)
+library(performance)
+
+cor_test <- cor.test(dat$theta, dat$dist, method = "spearman")
+cor_test
+
+
+
+
+
+
+
+library(lmtest)
+lrtest(model.beta)
+
+plot(model.beta)
+
+library(emmeans)
+
+joint_tests(model.beta)
+
+library(car)
+
+Anova(model.beta)
+
+plot(fitted(model.beta),
+     residuals(model.beta))
+
+model term df1 df2 F.ratio p.value
+Grade        1 Inf   7.580  0.0059
+
+
+
+model_out <- lm(relatedness ~ log10(dist),data=dat)
+plot(fitted(model_out), resid(model_out))
+check_model(model_out)
+
+model_out <- lm(relatedness ~ (dist),data=dat)
+plot(model_out)
+check_model(model_out)
+check_zeroinflation(model_out)
+
+par(mfrow = c(1, 1), mar=c(3, 3, 1.7, 1), mgp=c(3, 1, 0), las=0)
+
+plot(0,type='n', xlim=c(1,4000), ylim=c(0,0.3),
+     main="",
+     ylab="",
+     xlab="",
+     cex.lab=0.9, cex.axis=0.7,
+     xaxt="n",yaxt="n")
+
+axis(1, mgp=c(1.8, .2, 0), cex.axis=0.7, tcl=-0.2, at=c(1, 100, 200, 300, 400)) # second is tick mark labels
+axis(2, mgp=c(1.8, .4, 0), cex.axis=0.7, tcl=-0.2)
+title(xlab="Distance between SNPs in base pairs", line=1.5, cex.lab=0.9)
+title(ylab="Estimated Linkage Disequilibrium", line=1.5, cex.lab=0.9)
+
+lines(sort(dat$dist, decreasing=FALSE), sort(fitted(model_out), decreasing=TRUE),
+        lwd=3, lty=1, col='#a8bcba')
+
+
+
+
+
 
 # exponential decay
 theta.0 <- min(dat$theta) * 0.5  
@@ -184,5 +337,6 @@ start
 
 model <- nls(relatedness ~ alpha * exp(beta * dist) + theta , data = dat, start = start)
 plot(dat$dist, dat$relatedness)
-lines(dat$dist, predict(model, list(x = dat$dist)), col = 'skyblue', lwd = 3)
+lines(dat$dist, predict(model, list(x = dat$dist)), 
+      col = 'skyblue', lwd = 3)
   
