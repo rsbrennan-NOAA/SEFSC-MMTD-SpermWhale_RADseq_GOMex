@@ -122,7 +122,7 @@ dev.off()
 kept.id <- sample(1:nInd(genl), size=43, replace=F)
 
 x <- genl[kept.id,]
-x.sup <- genl[!1:nInd(genl) %in% kept.id,]
+x.sup <- genl[!(1:nInd(genl)) %in% kept.id,]
 
 dapc4 <- dapc(x ,n.pca=3,n.da=4)
 pred.sup <- predict.dapc(dapc4, newdata=x.sup )
@@ -164,7 +164,7 @@ for(i in 1:n){
   # leave out ~30% of samples. 61 indivs. so select 43 to keep (drop 18)
   kept.id <- sample(1:nInd(genl), size=43, replace=F)
   x <- genl[kept.id,]
-  x.sup <- genl[!1:nInd(genl) %in% kept.id,]
+  x.sup <- genl[!(1:nInd(genl)) %in% kept.id,]
   # run dapc
   dapc4 <- dapc(x , x@pop,n.pca=3,n.da=4)
   pred.sup <- predict.dapc(dapc4, newdata=x.sup )
@@ -412,13 +412,21 @@ for(i in c(3, 10, 20, 40, 60)){
   outdf <- rbind(outdf, tmpout)
 }
 
+my_labeller <- function(string) {
+  labeled_string <- paste(string, "PCs")
+  return(labeled_string)
+}
 
+outdf$PCs <- as.factor(outdf$PCs)
 p <- ggplot(data=outdf, aes(x=K, y=BIC)) +
   geom_line() +
   geom_point() +
-  facet_grid(.~PCs)
+  facet_wrap(vars(PCs),scales="free",
+             labeller = labeller(PCs = my_labeller)) +
+  theme_bw()
 p
-ggsave(file="figures/fig3.pdf", w=7, h=4)
+
+ggsave(file="../figures/DAPC_PCs_BIC.png",p, w=6, h=4)
 
 
 
