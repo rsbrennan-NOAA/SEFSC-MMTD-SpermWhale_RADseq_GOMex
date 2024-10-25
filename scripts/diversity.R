@@ -6,25 +6,33 @@ library(ggpubr)
 
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/diversity/")
 
-dat <- read.csv("50kb_pi.txt", header=T, sep="\t")
+dat_pops <- read.csv("50kb_pi.txt", header=T, sep="\t")
+dat_all <- read.csv("50kb_all_pi.txt", header=T, sep="\t")
 dat.na <- dat[!is.na(dat$avg_pi),]
+dat_all.na <- dat_all[!is.na(dat_all$avg_pi),]
 nrow(dat.na)
 # 51748
+nrow(dat_all.na)
+# 12937
 
 # use only the assembled chromosomes. 
 
-dat.sub <- dat.na[grep("NC_",dat.na$chromosome),]
+dat_pops.sub <- dat.na[grep("NC_",dat.na$chromosome),]
+dat_all.sub <- dat_all.na[grep("NC_",dat_all.na$chromosome),]
 
-nrow(dat.sub)
-table(dat.sub$pop)
+nrow(dat_pops.sub)
+table(dat_pops.sub$pop)
 # 11675 for each pop
+table(dat_all.sub$pop)
+# 11675 for all
 
-hist(dat.sub$no_sites)
 
-ggplot(dat.sub, aes(x=pop, y=(avg_pi))) +
+hist(dat_pops.sub$no_sites)
+
+ggplot(dat_pops.sub, aes(x=pop, y=(avg_pi))) +
   geom_boxplot() +
   coord_cartesian(ylim = c(0, 0.002))
-sum(dat.na$avg_pi == 0)
+sum(dat_pops.sub$avg_pi == 0)
 # 22275
 
 # find average:
@@ -33,9 +41,11 @@ sum(dat.na$avg_pi == 0)
 # and recompute the differences/comparisons ratios, 
 # and not take an average of the summary statistics themselves.
 
-sum(dat.sub$count_diffs)/sum(dat.sub$count_comparisons)
+sum(dat_pops.sub$count_diffs)/sum(dat_pops.sub$count_comparisons)
+sum(dat_all.sub$count_diffs)/sum(dat_all.sub$count_comparisons)
+#0.00136339
 
-mean(dat$avg_pi, na.rm=T)
+mean(dat_pops.sub$avg_pi, na.rm=T)
 # actually pretty similar.
 
 pi <- dat.sub %>%
@@ -47,10 +57,6 @@ pi
 # Dry Tortuga    0.00133
 # NGOMex         0.00140
 # WGOMex         0.00132
-
-# two-sided Mann–Whitney–Wilcoxon test with Bonferroni correction
-
-#https://genome.cshlp.org/content/32/10/1952.full.pdf
 
 
 
@@ -84,13 +90,40 @@ bootstrap_population <- function(pop_data) {
 }
 
 # run bootstrap
-results <- dat.sub %>%
+results_pops <- dat_pops.sub %>%
   group_by(pop) %>%
   group_split() %>% # create of df for each pop
   map_dfr(bootstrap_population) # apply function to each df in list
 
 
-results
+# Function to run bootstrap no populations
+bootstrap_all <- function(pop_data) {
+  set.seed(123) 
+  boot_results <- boot(data = pop_data, statistic = calculate_pi, R = 10000)
+  ci <- boot.ci(boot_results, type = "perc")
+  
+  return(list(
+    estimate = boot_results$t0,
+    ci_lower = ci$percent[4],
+    ci_upper = ci$percent[5]
+  ))
+}
+
+# run bootstrap
+results_pops <- dat_pops.sub %>%
+  group_by(pop) %>%
+  group_split() %>% # create of df for each pop
+  map_dfr(bootstrap_population) # apply function to each df in list
+
+results_all <- bootstrap_all(dat_all.sub) %>% 
+  as_tibble()
+
+results_pops
+results_all
+
+#estimate ci_lower ci_upper
+#<dbl>    <dbl>    <dbl>
+#  1  0.00136  0.00133  0.00140
 
 
 #population  estimate ci_lower ci_upper
@@ -103,15 +136,36 @@ results
 
 # plot
 
-piplot <- ggplot(results, aes(x=population, y=estimate, fill=population)) +
+# Add population column to results_all and combine with results_pops
+results_combined <- bind_rows(
+  results_pops,
+  results_all %>% mutate(population = "All Populations")
+)
+
+results_combined$population <- factor(results_combined$population, levels = population_order)
+legend_order <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
+results_combined$population_legend <- factor(results_combined$population, levels = legend_order)
+
+piplot <- ggplot(results_combined, 
+                 aes(x = population, 
+                     y = estimate, 
+                     fill = population_legend, shape=population_legend)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
-  geom_point(size=4, pch=21) +
-  theme_classic(base_size = 14) +
-  ylab("Tajima's pi") +
-  scale_fill_manual(values=c("#eac435","#557fc3", "#03cea4", "#fb4d3d"))+
-  xlab("")  +
-  theme(axis.text.x = element_text(angle = 45, hjust=1))  +
-  theme(legend.title=element_blank()) 
+  geom_point(aes(size = ifelse(population == "All Populations", "All", "Population"))) +
+  scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
+  theme_classic(base_size = 12) +
+  ylab("Genetic\ndiversity") +
+  scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24))+    
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) 
+
+
+piplot
 
 ggsave("../figures/pi.png", h=5, w=6)
 
@@ -214,44 +268,116 @@ results
 
 
 #----------------------------------------------------------------------------------
-# obs and het, from stacks
+#----------------------------------------------------------------------------------
+
+# fis,  obs and exp het, from stacks
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/")
 
-dat <- read.csv("freebayes_filtered_nonrelated.p.sumstats_summary.tsv", header=T, sep="\t")
+in_pops <- read.csv("filtered.final.p.sumstats_summary.tsv", header=T, sep="\t")
+in_all <- read.csv("filtered.final.p.sumstats_summary_all.tsv", header=T, sep="\t")
+dat <- rbind(in_all, in_pops)
 head(dat)
-dat$population <- dat$PopID
+dat$population <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex") 
+dat$population_legend <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
+population_order <- c("Atlantic", "Dry Tortuga","All Populations", "NGOMex", "WGOMex")
+dat$population <- factor(dat$population, levels = population_order)
 
-obshetplot <- ggplot(dat, aes(x=PopID, y=Obs_Het, fill=population)) +
-  geom_errorbar(aes(ymin = Obs_Het-StdErr.2 , ymax = Obs_Het+StdErr.2 ), width = 0.2) +
-  geom_point(size=4, pch=21) +
-  theme_classic(base_size = 14) +
-  ylab("Observed Heterozygosity") +
+
+obshet_plot <- ggplot(dat, 
+                 aes(x = population, 
+                     y = Obs_Het, 
+                     fill = population_legend, shape=population_legend)) +
+  geom_errorbar(aes(ymin = Obs_Het-StdErr.2, ymax = Obs_Het+StdErr.2), width = 0.2) +
+  geom_point(aes(size = ifelse(population == "All Populations", "All", "Population"))) +
+  scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
+  theme_classic(base_size = 12) +
+  ylab("Observed\nheterozygosity") +
+  scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24))+    
   xlab("") +
-  scale_fill_manual(values=c("#eac435","#557fc3", "#03cea4", "#fb4d3d")) +
-  theme(axis.text.x = element_text(angle = 45, hjust=1))   +
-  theme(legend.title=element_blank())
-  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) 
 
-ggsave("../figures/het_obs.png", h=5, w=5)
-
-
-# expected:
-
-exphetplot <- ggplot(dat, aes(x=PopID, y=Exp_Het, fill=population )) +
-  geom_errorbar(aes(ymin = Exp_Het-StdErr.4 , ymax = Exp_Het+StdErr.4 ), width = 0.2) +
-  geom_point(size=4, pch=21) +
-  theme_classic(base_size = 14) +
-  ylab("Expected Heterozygosity") +
+exphet_plot <- ggplot(dat, 
+                      aes(x = population, 
+                          y = Exp_Het, 
+                          fill = population_legend, shape=population_legend)) +
+  geom_errorbar(aes(ymin = Exp_Het-StdErr.3, ymax = Exp_Het+StdErr.3), width = 0.2) +
+  geom_point(aes(size = ifelse(population == "All Populations", "All", "Population"))) +
+  scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
+  theme_classic(base_size = 12) +
+  ylab("Expected\nheterozygosity") +
+  scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24))+    
   xlab("") +
-  scale_fill_manual(values=c("#eac435","#557fc3", "#03cea4", "#fb4d3d")) +
-  theme(axis.text.x = element_text(angle = 45, hjust=1))  +
-  theme(legend.title=element_blank())
-ggsave("../figures/het_exp.png", h=5, w=5)
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) 
 
 
-ggarrange(piplot, obshetplot, exphetplot , nrow=1, common.legend =T, legend="top")
 
-ggsave("../figures/diversity.png", h=5, w=10)
+#FIS
+
+fis_plot <- ggplot(dat, 
+                      aes(x = population, 
+                          y = Fis, 
+                          fill = population_legend, shape=population_legend)) +
+  geom_errorbar(aes(ymin = Fis-StdErr.7, ymax = Fis+StdErr.7), width = 0.2) +
+  geom_point(aes(size = ifelse(population == "All Populations", "All", "Population"))) +
+  scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
+  theme_classic(base_size = 12) +
+  ylab("Inbreeding\ncoefficient") +
+  scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24))+    
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) 
+
+
+
+library(patchwork)
+
+
+# Modify each plot to remove x-axis labels except bottom plots
+# Assuming your plots are named plot1, plot2, plot3, and plot4
+
+# Top plots: remove x-axis text and title
+piplot_mod <- piplot + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+
+obshet_plot_mod <- obshet_plot + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+
+
+# Combine the plots
+grid_plots <- (guide_area() / (piplot_mod + obshet_plot_mod) / (exphet_plot + fis_plot)) +
+  plot_layout(guides = "collect", heights = (c(0.1, 1,1))) +
+  plot_annotation(tag_levels = 'A') &
+   theme(legend.position = 'top',plot.tag = element_text(face = 'bold', size=16))
+
+grid_plots
+
+ggsave(file="../figures/fig4.pdf",grid_plots,
+       w=7, h=5)
+ggsave(file="../figures/fig4.png",grid_plots,
+       w=7, h=5)
+
+
+
+
+
+
+
 
 
 # -----------------------------------------------------------------------------------
@@ -319,10 +445,11 @@ plot_pairwise_fst_heatmap(my.dat, facets="pop")
 dev.off()
 
 
-dat <- calc_ho(dat, facets="pop")
-dat <- calc_fis(dat, facets="pop")
+dat <- calc_ho(dat, facets="pop", boot=100)
+dat <- calc_fis(dat, facets="pop", boot=100)
 
 get.snpR.stats(dat, facets = "pop", stats="ho")
+
 get.snpR.stats(dat, facets = "pop", stats="fis")
 #facet    subfacet snp.facet snp.subfacet weighted_mean_fis
 #1   pop    Atlantic     .base        .base        0.10168761
@@ -405,6 +532,7 @@ get.snpR.stats(dat, facets = "pop", stats="fis")
 #2   pop Dry_Tortuga     .base        .base        0.06291019
 #3   pop      NGOMex     .base        .base        0.06533394
 #4   pop      WGOMex     .base        .base        0.05719921
+
 
 
 
