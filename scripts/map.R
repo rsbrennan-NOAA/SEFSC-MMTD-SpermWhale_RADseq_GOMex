@@ -175,7 +175,7 @@ trans1 = trans.mat(bathydata, min.depth = -0.3, max.depth = NULL)
 # load("transition_object.RData")
 
 
-# Compute least-cost paths [long run time]
+# Compute least-cost pat  hs [long run time]
 lc_paths = lc.dist(trans1, coords.gps, res = "path")
 save(lc_paths, file = "least_cost_paths.RData")
 load("least_cost_paths.RData")

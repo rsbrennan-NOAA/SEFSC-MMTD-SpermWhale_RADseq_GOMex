@@ -200,11 +200,11 @@ ggplot(dat, aes(x=(dist), y=(theta))) +
 filtered_dat <- dat %>%
   filter(theta > 0.01)
 
-model_out <- lm(theta ~ log10(dist),data=filtered_dat)
+model_out <- lm(theta ~ log10(dist),data=dat)
 
 ggplot(dat, aes(x = dist, y = theta)) +
   geom_point() +
-  geom_line(data = data.frame(dist = filtered_dat$dist, 
+  geom_line(data = data.frame(dist = dat$dist, 
                               fitted = fitted(model_out)),
             aes(x = dist, y = fitted),
             size=2, color="dodgerblue3")
@@ -218,6 +218,13 @@ ggplot(dat, aes(x=log10(dist), y=(theta))) +
 
 ############################################
 # stats:
+
+#just a regular regression
+model_out <- lm(theta ~ log10(dist),data=dat)
+
+summary(model_out)
+plot(model_out)
+
 
 # https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13234
 dat$theta_no0 <- dat$theta
@@ -257,12 +264,15 @@ model_zibeta <- gamlss(theta ~ dist, family = BEZI(), data=dat,
 summary(model_zibeta)
 plot(model_zibeta)
 
+model_zibeta <- gamlss(theta ~ dist, family = BEINF0, data=dat,
+                       control = gamlss.control(n.cyc = 200))
+summary(model_zibeta)
+plot(model_zibeta)
+
 
 library(nlme)
 library(performance)
 
-cor_test <- cor.test(dat$theta, dat$dist, method = "spearman")
-cor_test
 
 
 
@@ -286,57 +296,4 @@ Anova(model.beta)
 plot(fitted(model.beta),
      residuals(model.beta))
 
-model term df1 df2 F.ratio p.value
-Grade        1 Inf   7.580  0.0059
 
-
-
-model_out <- lm(relatedness ~ log10(dist),data=dat)
-plot(fitted(model_out), resid(model_out))
-check_model(model_out)
-
-model_out <- lm(relatedness ~ (dist),data=dat)
-plot(model_out)
-check_model(model_out)
-check_zeroinflation(model_out)
-
-par(mfrow = c(1, 1), mar=c(3, 3, 1.7, 1), mgp=c(3, 1, 0), las=0)
-
-plot(0,type='n', xlim=c(1,4000), ylim=c(0,0.3),
-     main="",
-     ylab="",
-     xlab="",
-     cex.lab=0.9, cex.axis=0.7,
-     xaxt="n",yaxt="n")
-
-axis(1, mgp=c(1.8, .2, 0), cex.axis=0.7, tcl=-0.2, at=c(1, 100, 200, 300, 400)) # second is tick mark labels
-axis(2, mgp=c(1.8, .4, 0), cex.axis=0.7, tcl=-0.2)
-title(xlab="Distance between SNPs in base pairs", line=1.5, cex.lab=0.9)
-title(ylab="Estimated Linkage Disequilibrium", line=1.5, cex.lab=0.9)
-
-lines(sort(dat$dist, decreasing=FALSE), sort(fitted(model_out), decreasing=TRUE),
-        lwd=3, lty=1, col='#a8bcba')
-
-
-
-
-
-
-# exponential decay
-theta.0 <- min(dat$theta) * 0.5  
-
-# Estimate the rest parameters using a linear model
-model.0 <- lm((theta) ~ log(dist), data=dat)  
-alpha.0 <- exp(coef(model.0)[1])
-beta.0 <- coef(model.0)[2]
-dat$relatedness <- dat$theta
-
-# Starting parameters
-start <- list(alpha = alpha.0, beta = beta.0, theta = theta.0)
-start
-
-model <- nls(relatedness ~ alpha * exp(beta * dist) + theta , data = dat, start = start)
-plot(dat$dist, dat$relatedness)
-lines(dat$dist, predict(model, list(x = dat$dist)), 
-      col = 'skyblue', lwd = 3)
-  
