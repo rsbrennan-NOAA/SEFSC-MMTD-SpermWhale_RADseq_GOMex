@@ -499,6 +499,185 @@ vcftools --gzvcf ../freebayes/filtered.final.vcf.gz --weir-fst-pop ~/spermWhaleR
 
 ```
 
+
+# demographic history
+
+
+First check what sfs should roughly look like given allele freqs.
+
+```bash
+module load bio/vcftools/0.1.16
+
+vcftools --gzvcf freebayes/filtered.final.vcf.gz --freq --out all_snps
+
+```
+
+```r
+
+dat <- read.table("all_snps.frq", header=T)
+
+dat$a1 <- substring(dat$a1, 3)
+dat$a2 <- substring(dat$a2, 3)
+dat$maf <- as.numeric(pmin(dat$a1, dat$a2))
+
+hist(dat$maf, breaks=80)
+
+```
+
+All looks reasonable. 
+
+1. calc sfs:
+
+
+go back and skip the maf filter
+
+```bash
+
+mamba activate vcflib-1.0.9
+
+vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.5.vcf.gz  --max-missing 0.7 --min-meanDP 10 --recode --recode-INFO-all  --stdout >  ~/spermWhaleRad/analysis/freebayes/filtered.6.noMAF.vcf
+
+vcffilter -s -f "AB > 0.25 & AB < 0.75 | AB < 0.01" ~/spermWhaleRad/analysis/freebayes/filtered.6.noMAF.vcf |bgzip > ~/spermWhaleRad/analysis/freebayes/filtered.7.noMAF.vcf.gz
+
+
+vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.7.noMAF.vcf.gz --max-meanDP 53.4 --exclude-positions ~/spermWhaleRad/analysis/freebayes/HD_exclude.txt --recode --recode-INFO-all --stdout |  bgzip > ~/spermWhaleRad/analysis/freebayes/filtered.final.noMAF.vcf.gz
+
+```
+
+
+```r
+
+library(dartR)
+
+setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/")
+
+dat <- read.table("all_snps.frq", header=T)
+
+dat$a1 <- substring(dat$a1, 3)
+dat$a2 <- substring(dat$a2, 3)
+
+dat$maf <- as.numeric(pmin(dat$a1, dat$a2))
+
+hist(dat$maf, breaks=80)
+
+#
+library(vcfR)
+library(dartR)
+setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis")
+
+vcf <- read.vcfR( "filtered.final.vcf.gz", verbose = FALSE )
+
+genl<-vcfR2genlight(vcf)
+
+pop(genl) <- rep("pop1", 73)
+genlImpute <- gl.impute(genl, method="frequency")
+sfs_out <- gl.sfs(genlImpute, singlepop=TRUE)
+
+# with no maf
+vcf <- read.vcfR( "filtered.final.noMAF.vcf.gz", verbose = FALSE )
+
+genl<-vcfR2genlight(vcf)
+
+pop(genl) <- rep("pop1", 73)
+glx <- gl.compliance.check(genl)
+
+gl.report.callrate(glx)
+
+genlImpute <- gl.impute(glx, method="frequency")
+
+sfs_out <- gl.sfs(genlImpute, singlepop=TRUE)
+
+as.numeric(sfs_out)
+# 0  20  51 820 654 559 428 350 277 256 206 189 162 145 134 124 111  96 115 106  97  96  83  69  81  52  61  73  55  62  65  63  56  46  60  50  45  44  43  36  49  47  52  39  42  51  36  32  37  37  48  27  43  44  43  30  34  36  34  21  36  35  35  33  41  32  46  32  37  29  31  40  22  17
+
+
+```
+
+## estimate sfs with angsd
+
+
+`sfs_angsd.sh`
+
+outputs `folded.saf.idx` from angsd and then `folded.boots` and `folded.sfs` from realSFS
+
+take the sfs from `folded.sfs` and add to the blueprint: `angsd.blueprint`
+
+
+
+
+
+
+
+
+```bash
+#zcat combined_filtered_invariant.vcf.gz | grep -v ^# | wc -l
+#1348869
+
+# create batch file
+
+#!/bin/bash
+#SBATCH --job-name=StairwayPlot
+#SBATCH --mail-user=reid.brennan@noaa.gov
+#SBATCH --mail-type=END
+#SBATCH -o %x_%j.out
+#SBATCH -e %x_%j.err
+#SBATCH -D /home/rbrennan/spermWhaleRad/logout
+#SBATCH -n 1
+#SBATCH --mem=16G
+#SBATCH --partition=standard
+#SBATCH --time=10:00:00
+
+cd ~/spermWhaleRad/analysis/demographic_history/stairway_plot_v2.1.1
+
+java -cp stairway_plot_es Stairbuilder noMAF_angsd.blueprint
+
+bash noMAF_angsd.blueprint.sh 
+
+
+```
+
+
+
+```r
+
+
+
+
+
+
+```
+
+
+
+
+
+
+2. Stairway plot2 
+
+
+https://github.com/t-vane/Tiley_et_al_2022_Microcebus_lehilahytsara/blob/main/demographic_modeling/stairwayplot.sh
+
+https://github.com/t-vane/Tiley_et_al_2022_Microcebus_lehilahytsara
+
+
+Calculate sfs: https://github.com/isaacovercast/easySFS
+- This method is particularly suitable for RADseq data, as it handles missing data in the SNP matrix by down projecting to smaller sample size and averaging over all possible resamplings. Following the author’s suggestions, down projection was chosen to retain the maximum number of individuals while avoiding the loss of too many SNPs.
+- https://github.com/manolofperez/CNN_ABCsteppe
+
+https://www.nature.com/articles/s41467-022-29267-8
+
+
+https://academic.oup.com/mbe/article/36/12/2906/5551343#186351940
+- stairway plot might catch recent declines better.
+
+https://www.sciencedirect.com/science/article/pii/S2351989424000507#sec0010
+- 
+
+https://hal.science/hal-04299475/document
+- We generated estimates of effective population size over time based on the unfolded SFS in STAIRWAY PLOT v2.1.1 (Liu & Fu, 2020). First, we polarized the ancestral versus derived allelic states of the SNP calls for North Atlantic right whale and southern right whales setting the bowhead whale sample as the ancestral allele with a custom python script. We calculated the unfolded SFS of biallelic variant sites without missing data using SCIKIT-ALLEL v1.3.5. We estimated the demographic history of each species using STAIRWAY PLOT v2.1.1 with a mutation rate of 0.9664 × 10−8 mutations/site/generation (estimate for mysticetes reported in Dornburg et al., 2012; and within the range of estimates from SuárezMenéndez et al., 2022) and generation time of 32 year
+
+
+
 # problems
 
 this file is truncated. Pmac075

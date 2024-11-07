@@ -270,6 +270,7 @@ results
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
+
 # fis,  obs and exp het, from stacks
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/")
 
@@ -376,12 +377,17 @@ ggsave(file="../figures/fig4.png",grid_plots,
 
 
 
-
-
-
-
 # -----------------------------------------------------------------------------------
 # check that estimates are consistent with other methods
+
+library(snpR)
+
+
+
+
+
+
+
 
 library(dartR)
 

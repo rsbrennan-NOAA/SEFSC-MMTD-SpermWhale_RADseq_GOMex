@@ -26,6 +26,7 @@ samplelist$indiv2[!(samplelist$indiv2 %in% dat$Lab.ID..)]
 
 dat_in <- dat[dat$Lab.ID.. %in% samplelist$indiv2,]
 
+
 length(dat_in$Lab.ID..)
 
 usa <- st_as_sf(maps::map("state", fill=TRUE, plot =FALSE))
