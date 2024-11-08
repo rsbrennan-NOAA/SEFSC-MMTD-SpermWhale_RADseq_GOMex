@@ -1,15 +1,43 @@
 # Estimate Ne
 
+## NeEstimator
+
+```r
+#Neestimator
+
+# using dartR
+library(dartR)
+
+genl <- gl.read.vcf("filtered.final.vcf.gz")
+library(dartRverse)
+
+pops <- read.csv("../SW_Metadata.csv")
+
+genl@ind.names <- gsub("b", "",genl@ind.names)
+
+ids <- data.frame(IDs = genl@ind.names)
+result <- ids %>%
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
+
+#genl@pop <- as.factor(result$Pop.Structure.Location)
+
+neest.path.binaries = "C:/Users/Reid.Brennan/Documents/NEestimator2/"
+
+pops <- genl
+genl@pop
+genl@loc.names <- gsub("\\.", "", genl@loc.names)
+
+
+nes <- dartR.popgen::gl.LDNe(genl,  outfile = "LD_Ne.txt", neest.path = neest.path.binaries,
+               pairing="separate",
+               critical = c(0, 0.05), singleton.rm = TRUE, mating = "random")
+
+
+```
+
+
+
 ### currentNe
-
-use only the major chromosomes, so I know the actual distance between snps.
-
-~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz
-zcat ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz > ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf
-
-subset the vcf to each of the 4 pops:
-
-check this file: `variants_all_chr_NeFormat.ped` bc different results in current Ne than vcf despite same number of snps, etc.
 
 ```bash
 

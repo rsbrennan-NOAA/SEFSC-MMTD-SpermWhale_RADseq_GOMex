@@ -431,12 +431,20 @@ sample_meta <- data.frame(pop = result$Pop.Structure.Location, sex=result$Sex)
 # assign meta data to dat
 sample.meta(dat) <- sample_meta
 
-# calculate fst between the populations
-my.dat <- calc_pairwise_fst(dat, facets="pop", method = "WC")
+# calculate fst between the populations. 
+# Run bootstraps to calculate significance compared to random pop assignments. 
+# i.e., null that there is panmixia
+my.dat <- calc_pairwise_fst(dat, facets="pop", method = "WC", boot = 500)
 
 # first look at the results, just the head
 head(get.snpR.stats(my.dat, facets = "pop", stats = "fst"))
 
+fst_pvals <- get.snpR.stats(my.dat, facets = "pop", stats = "fst")$fst.matrix$pop$p
+#p1 Dry_Tortuga    NGOMex     WGOMex
+#<char>       <num>     <num>      <num>
+#  1:    Atlantic   0.3712575 0.1317365 0.11776447
+#2: Dry_Tortuga          NA 0.1477046 0.10379242
+#3:      NGOMex          NA        NA 0.06586826
 
 snpout <- get.snpR.stats(my.dat, facets = "pop", stats = "fst")
 snpout$fst.matrix$pop
@@ -456,7 +464,7 @@ dat <- calc_fis(dat, facets="pop", boot=100)
 
 get.snpR.stats(dat, facets = "pop", stats="ho")
 
-get.snpR.stats(dat, facets = "pop", stats="fis")
+get.snpR.stats(dat, facets = "pop", stats="fis", boot_confidence = 0.99)
 #facet    subfacet snp.facet snp.subfacet weighted_mean_fis
 #1   pop    Atlantic     .base        .base        0.10168761
 #2   pop Dry_Tortuga     .base        .base        0.06291019

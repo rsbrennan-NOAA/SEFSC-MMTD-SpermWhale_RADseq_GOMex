@@ -240,7 +240,24 @@ In order to choose a threshold value for thinning in the pruning step, linkage d
 
 # effective population size
 
-### currentNe
+currentNe and NeEstimator2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 use only the major chromosomes, so I know the actual distance between snps.
 currentNe ~/spermWhaleRad/analysis/freebayes/freebayes_unrelated_chr.vcf
@@ -250,7 +267,6 @@ zcat ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz > ~/spermWhaleRad/anal
 
 subset the vcf to each of the 4 pops:
 
-check this file: `variants_all_chr_NeFormat.ped` bc different results in current Ne than vcf despite same number of snps, etc.
 
 ```bash
 
@@ -258,12 +274,15 @@ module load bio/plink/1.90b6.23
 
 cd ~/spermWhaleRad/analysis/Ne
 
-# where is the code for pulling out the major chromsoeomes?
+# where is the code for pulling out the major chromosomes?
 
+# pull out only the assembled chromosomes and not scaffolds
+# all assembled chr start with NC_
+zcat ~/spermWhaleRad/analysis/freebayes/filtered.final.vcf.gz | grep '^#' | grep -v "##contig=<ID=NW_" > ~/spermWhaleRad/analysis/freebayes/vcf_header.txt
+zcat ~/spermWhaleRad/analysis/freebayes/filtered.final.vcf.gz | grep '^NC_' | grep -v 'NC_002503.2' > ~/spermWhaleRad/analysis/freebayes/vcf_chrOnly.txt
+cat ~/spermWhaleRad/analysis/freebayes/vcf_header.txt ~/spermWhaleRad/analysis/freebayes/vcf_chrOnly.txt > ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.vcf
 
 # need to add snp ids:
-
-filtered.final_ids.vcf.gz
 
 module load bio/bcftools/1.11
 module load lib64/htslib/1.11
@@ -271,32 +290,6 @@ module load lib64/htslib/1.11
 tabix ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf 
 bcftools annotate ~/spermWhaleRad/analysis/Ne/freebayes_all_chr.vcf.gz -x ID -I +'%CHROM:%POS' > ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_ids.vcf 
 
-plink --vcf freebayes_all_chr_ids.vcf \
---recode --out variants_all_chr \
---allow-extra-chr --double-id --a2-allele freebayes_all_chr_ids.vcf 4 3 '#' --real-ref-alleles 
-
-## test files:
-
-cat freebayes_all_chr_ids.vcf | head -n 600 > test.vcf
-
-~/plink2 --vcf test.vcf --export ped --out plink2_conversion
-
-plink --vcf test.vcf --allow-extra-chr --recode --out plink1_conversion
-head -n1 plink1_conversion.ped | grep -o " " | wc -l
-head -n1 | grep -o "\t" | wc -l
-awk '{print NF; exit}' plink2_conversion.ped 
-
-# run currentNe
- ~/spermWhaleRad/analysis/Ne/currentNe/currentNe plink1_conversion.ped 4 -o plink1_conversion
- ~/spermWhaleRad/analysis/Ne/currentNe/currentNe plink2_conversion.ped 4 -o plink2_conversion
- ~/spermWhaleRad/analysis/Ne/currentNe/currentNe test.vcf 4 -o vcf_input
-
-## plink
-
-## plink2
-
-
-~/plink2 --vcf ~/spermWhaleRad/analysis/Ne/freebayes_all_chr_ids.vcf --export ped
 
 module load bio/vcftools/0.1.16
 
@@ -367,12 +360,17 @@ sed 's/\t/ /g' my_data.map > my_data2.map
 ```
 
 
-no siblings specified:
 
 
 specify the average number of full siblings in the sample: -k -0.12
 
-~/spermWhaleRad/analysis/Ne/currentNe/currentNe
+
+
+
+
+
+
+
 
 ### NeEstimator:
 
