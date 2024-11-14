@@ -179,3 +179,85 @@ ggsave("../figures/PCA_1_2_snpRelate_unrelated_sex.png",
 
 
 
+#--------------------------------------------------------------------------------
+# drop related indivs, then ld prune. 
+# to make sure this doesn't screw anything up.
+
+
+filename = "filtered.final_ids"
+filename.gds = paste0(filename, ".gds")
+filename.vcf.gz = paste0(filename, ".vcf.gz")
+# 1 . Convert VCF to GDS
+#SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
+
+gdsin = SeqArray::seqOpen(filename.gds)
+print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))
+
+print(paste0("The number of SNPs in data: ",  length(c(SeqArray::seqGetData(gdsin, "variant.id")))))
+
+summary(m1 <- SeqArray::seqMissing(gdsin, per.variant=TRUE))
+summary(m2 <- SeqArray::seqMissing(gdsin, per.variant=FALSE))
+samples <- SeqArray::seqGetData(gdsin, "sample.id")
+cbind(samples,m2)[order(-m2),]
+hist(m2,breaks=50)
+
+indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac125", "Pmac131", "Pmac101", "Pmac130", "Pmac052b", "Pmac084", "Pmac117", "Pmac096")
+
+keep = samples[which(!samples %in% indivrm)]
+length(keep)
+snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, start.pos="random", 
+                                     num.thread=1, remove.monosnp = T, sample.id = keep)  
+snpset.id <- unlist(unname(snpset))
+
+# PCA only on SNPs with a minor allele freq greater than 5%
+pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, remove.monosnp = T, maf = 0.05,
+                               snp.id=snpset.id,
+                               sample.id = keep) # filtering for pruned SNPs
+
+eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
+barplot(100*eig/sum(eig), main="PCA Eigenvalues")
+
+# scale 
+dat <- as.data.frame(pca.out$eigenvect)
+
+colnames(dat) <- c("PC1", "PC2", "PC3",colnames(dat)[4:ncol(dat)] )
+dat$IDs <- gsub("b", "",pca.out$sample.id)
+
+result <- dat %>%
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
+
+# with ids
+d <- ggplot(result, aes(PC1, PC2, label=IDs)) +
+  geom_text(size =3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('snpRelate: PC1, PC2')
+d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

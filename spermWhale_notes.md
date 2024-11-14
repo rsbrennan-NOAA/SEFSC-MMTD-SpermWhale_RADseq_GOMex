@@ -244,7 +244,22 @@ currentNe and NeEstimator2
 
 
 
+# mitochondrial analysis
 
+```bash
+
+cd /mnt/c/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/mitotyping
+
+grep -f rad_ids_unix.txt -A 1 Pmac_All_Align_complete_CR_truncated.fasta | grep -v '^--$' > Pmac_All_Align_complete_CR_truncated_RADSamples_only.fasta
+
+# make nexus file to read into popart:
+
+
+
+
+
+
+```
 
 
 

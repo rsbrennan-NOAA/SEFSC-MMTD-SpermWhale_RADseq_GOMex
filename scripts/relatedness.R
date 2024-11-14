@@ -66,7 +66,7 @@ half[,c("id_a", "id_b", "theta", "KING")]
 # more distant
   #Pmac117|Pmac096
 
-indivrm <- c("Pmac93", "Pmac100", "Pmac125", "Pmac97", "Pmac120", "Pmac125", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac84", "Pmac117", "Pmac96")
+indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac125", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac84", "Pmac117", "Pmac96")
 
 write.table(file= "C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/relatedindivs.txt", 
             data.frame(indivrm), row.name=F, col.names = F, quote = F)
