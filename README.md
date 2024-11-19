@@ -26,6 +26,25 @@ For questions contact Reid Brennan: reid.brennan@noaa.gov or reid.brennan@gmail.
 	- `filter.R`: requires `HDplot.R`. Max depth, HDplot for paralogs
 	- `filter.3.sh`: remove sites found in `filter.R`
 
+`filtered.final.vcf.gz`: 4441 snps
+
+
+### Analysis
+
+- PCA:
+- Relatedness
+- Admixture
+- DAPC
+- genetic diversity
+	- Pi
+	- heterozygosity
+	- Fst
+- Effective population size
+
+Mitochondrial analysis
+
+- add here 
+
 
 
 
