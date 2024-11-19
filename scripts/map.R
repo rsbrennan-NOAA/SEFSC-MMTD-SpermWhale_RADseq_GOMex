@@ -5,6 +5,7 @@ library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(tidyverse)
+library(ggspatial)
 
 
 # Get the world map data
@@ -53,11 +54,26 @@ p <- ggplot() +
     panel.grid = element_blank(),
     #axis.text = element_blank(),
     #axis.ticks = element_blank()
-    legend.position = "top",
+    #legend.position = c(1, 0),
+    legend.background = element_rect(fill = NA),  # transparent background
+    #legend.box.background = element_rect(color = "black", fill = NA),  # only border, no fill
+    legend.margin = margin(0, 0, 0, 0),  # removes space around the legend
+    legend.box.margin = margin(0, 0, 0, 0),
+    legend.box.spacing = unit(0.1, "cm"),  # reduces space between legend and plot
+    legend.text = element_text(margin = margin(l = -2)),  # adjust left margin of text
+    #legend.justification = c(1, 0),     
+    legend.position="top",
+    plot.margin = margin(r = 20, l = 5, b = 10, t = 5),  # Added this line
   legend.title=element_blank()) +
   xlab("latitude")+
   ylab("longitude") +
-  coord_sf(xlim = c(-100, -65), ylim = c(22, 43), expand = FALSE)
+  coord_sf(xlim = c(-100, -65), ylim = c(22, 43), expand = FALSE)+
+  annotation_scale(location = "bl", 
+                   width_hint = 0.2, 
+                   pad_x = unit(0.45, "in"),  # moves scale bar in from right edge
+                   pad_y = unit(0.1, "in"),  # moves scale bar up from bottom edge
+                   style = "ticks",
+                   unit_category = "metric")
 p
   
 ggsave("figures/map.pdf", p, h=4, w=5)

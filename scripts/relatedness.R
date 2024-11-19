@@ -61,13 +61,14 @@ half[,c("id_a", "id_b", "theta", "KING")]
 
 # full sibs to remove:
   # Pmac093|Pmac100|Pmac125|Pmac097
+    # M       F       F       F
 # half sibs to remove:
-  # Pmac120|Pmac125|Pmac131|Pmac101|Pmac130|Pmac052b|Pmac084|
+  # Pmac120|Pmac125|Pmac131|Pmac101|Pmac130|Pmac052b|Pmac084
 # more distant
   #Pmac117|Pmac096
 
-indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac125", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac84", "Pmac117", "Pmac96")
-
+indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac84", "Pmac117", "Pmac96")
+              # M         F           F           F                      M                    M          M         M         M
 write.table(file= "C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/relatedindivs.txt", 
             data.frame(indivrm), row.name=F, col.names = F, quote = F)
 
@@ -142,6 +143,24 @@ out.order <- out[order(out$theta, decreasing=T),]
 head(out.order)
 
 write.csv(out.order, file="../relatedness.csv", quote=F,row.names=F)
+
+
+# pull out sex of most related:
+half$sex_a <- pops$Lab.ID.. == half$id_a
+half$sex_a <- pops$Sex[match(half$id_a, pops$Lab.ID..)]
+half$sex_b <- pops$Sex[match(half$id_b, pops$Lab.ID..)]
+
+half[,c("id_a", "id_b", "theta", "KING", "sex_a", "sex_b")]
+
+library(tidyr)
+
+df1 <- unique(data.frame(ID = c(half$id_a,half$id_b), sex = c(half$sex_a,half$sex_b)))
+table(df1$sex)
+
+half[half$theta > 0.15,c("id_a", "id_b", "theta", "KING", "sex_a", "sex_b")]
+
+half[half$theta < 0.15 & half$theta > 0.1 ,c("id_a", "id_b", "theta", "KING", "sex_a", "sex_b")]
+half[half$theta < 0.1,c("id_a", "id_b", "theta", "KING", "sex_a", "sex_b")]
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

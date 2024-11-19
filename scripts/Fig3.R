@@ -75,7 +75,7 @@ sample.meta(dat) <- sample_meta
 
 # calculate fst between the populations
 my.dat <- calc_pairwise_fst(dat, facets="pop", method = "WC", boot = 500)
-
+# the bootstrapping here is actually permutation, mixing pop assignments
 fst_pvals <- get.snpR.stats(my.dat, facets = "pop", stats = "fst")$fst.matrix$pop$p
 #p1 Dry_Tortuga    NGOMex     WGOMex
 #<char>       <num>     <num>      <num>
