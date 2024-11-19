@@ -15,13 +15,18 @@ For questions contact Reid Brennan: reid.brennan@noaa.gov or reid.brennan@gmail.
 1. Fastqc raw files: `fastqc.nf`
 2. rename:
 	- `rename.sh SNP052_sperm_whale_plateB_75_indexes_HS100_437.txt`
-3. Trim with fastp: `nextflow run fastp.nf --fastq "raw_data/*.R1.fq.gz"`
-4. Fastqc trimmed files: `nextflow run fastqc.nf --input_dir ./analysis/trimmed_files --outdir ./analysis/fastqc_post_trim`
-5. Align with bwa mem2: `nextflow run bwa.nf -c nextflow.config -profile bwamem2`
-6. calculate alignment stats: `nextflow run bam_stats.nf -c nextflow.config -profile bamstats`, outputs: `count.aligned.txt`
-7. Call variants with freebayes: `freebayes_parallel.sh`
+3. Trim with fastp: 
+	- `nextflow run fastp.nf --fastq "raw_data/*.R1.fq.gz"`
+4. Fastqc trimmed files: 
+	- `nextflow run fastqc.nf --input_dir ./analysis/trimmed_files --outdir ./analysis/fastqc_post_trim`
+5. Align with bwa mem2: 
+	- `nextflow run bwa.nf -c nextflow.config -profile bwamem2`
+6. calculate alignment stats: 
+	- `nextflow run bam_stats.nf -c nextflow.config -profile bamstats`, outputs: `count.aligned.txt`
+7. Call variants with freebayes: 
+	- `freebayes_parallel.sh`
 8. Filter SNPs:
-	- `filter.1.sh`: First pass depth, missingness, bialleleic and snps only, depth. 126,084 snps remain
+	- `filter.1.sh`: First pass depth, missingness, bialleleic and snps only, depth.
 	- `filter.2.sh`: Remove `Pmac075`, truncated file. max missing 0.7, maf 0.05, min mean depth 10x, allelic balance
 	- `filter.R`: requires `HDplot.R`. Max depth, HDplot for paralogs
 	- `filter.3.sh`: remove sites found in `filter.R`
