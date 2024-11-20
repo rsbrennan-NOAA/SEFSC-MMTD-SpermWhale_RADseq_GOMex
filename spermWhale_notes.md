@@ -138,6 +138,10 @@ r scripts in `filter.R` which requires `HDplot.R`
 ## relatedness and clones
 
 `ngsrelate.sh`
+The zero-inflated beta regression model revealed a significant negative relationship between distance and [outcome] (β = -3.618e-05, SE = 1.195e-05, p = 0.00249). The model's intercept term in the mean component was significant (β = -5.369, SE = 0.046, p < 0.001), indicating a baseline [outcome] level [interpret what this means in your context]. The zero-inflation component was also significant (β = -1.682, SE = 0.054, p < 0.001), confirming the presence of structural zeros in the data. The model demonstrated good fit to the data (Global Deviance = -23236.7, AIC = -23228.7).
+
+Overall, closely related individuals were more likely to be sampled at closer geographic distances, with relatedness (theta) decreasing by 0.036 per 1000 kilometers (β = -3.618e-05 per km, p = 0.003), likely reflecting the familial structure of sperm whales (See discussion).
+
 
 ~/spermWhaleRad/analysis/relatedness/relatedness.res
 

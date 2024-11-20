@@ -36,10 +36,22 @@ For questions contact Reid Brennan: reid.brennan@noaa.gov or reid.brennan@gmail.
 
 ### Analysis
 
-- PCA:
+- PCA with all individuals:
+	- `plink_pca.sh`
+	- plot results: `pca.R`
+		- note that this includes related individuals
 - Relatedness
+	- `ngsrelate.sh`
+	- `relatedness.R`
+	- `filter_related.sh`
+- PCA unrelated individuals only
+	- `plink_unrelated.R`
+	- `pca_unrelated.R`
 - Admixture
+	- `admixture.sh`
+	- `admixture.R`
 - DAPC
+	- `dapc.R`
 - genetic diversity
 	- Pi
 	- heterozygosity

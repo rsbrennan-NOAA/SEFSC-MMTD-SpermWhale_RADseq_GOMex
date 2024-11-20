@@ -180,9 +180,102 @@ ggsave("../figures/PCA_1_2_snpRelate_unrelated_sex.png",
 
 
 #--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 # drop related indivs, then ld prune. 
 # to make sure this doesn't screw anything up.
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
+
+# plink
+
+dat <- read.table("variants_unrelated_NoLD_2_PCA.eigenvec", header=F)
+eigenval <- read.table("variants_unrelated_NoLD_2_PCA.eigenval", header=F)
+
+# first convert to percentage variance explained
+pve <- data.frame(PC=1:20, pve=round(eigenval$V1/sum(eigenval$V1)*100,1))
+
+# calculate the cumulative sum of the percentage variance explained
+cumsum(pve$pve)
+
+# plot the PC's
+a <- ggplot(pve, aes(PC, pve)) + geom_bar(stat = "identity") + 
+  ylab("% variance") + 
+  theme_classic()
+
+a
+
+
+####################
+# plot the PCA
+####################
+
+# rename our columns, just for ease
+colnames(dat) <- c("ID", "ID2", "PC1", "PC2", "PC3", "PC4", colnames(dat)[7:ncol(dat)])
+
+# add a population label:
+pops <- read.csv("../SW_Metadata.csv")
+
+dat$ID <- gsub("b", "",dat$ID)
+
+result <- dat %>%
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location, Sex), by = c("ID" = "Lab.ID.."))
+
+
+
+# plot the PCA
+
+d <- ggplot(dat, aes(PC1, PC2, label=ID)) +
+  #geom_point(size=4.5, shape=21, color="black", fill="grey48") +
+  geom_text(size =3) +
+  xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
+  ylab(paste0("PC2: ",pve$pve[2],"% variance")) +
+  theme_bw() +
+  ggtitle("plink: PC1, PC2")
+#scale_fill_manual(values=c("#68228B",'#B22222',"#CD6090","#87CEFA", "#1874CD"))
+d
+
+#ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/PCA_1_2_plink_ids.png",
+#       d, w=4, h=4)
+
+# with points
+d <- ggplot(result, aes(PC1, PC2, fill=Pop.Structure.Location, shape=Pop.Structure.Location)) +
+  geom_point(size =3, color="black") +
+  xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
+  ylab(paste0("PC2: ",pve$pve[2],"% variance")) +
+  theme_classic() +
+  scale_fill_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,22,23,24))+
+  theme(legend.position = "top",
+        legend.title=element_blank())
+
+
+
+#ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/PCA_1_2_plink.png",
+#       d, w=4, h=4)
+
+
+
+d <- ggplot(dat, aes(PC1, PC3, label=ID)) +
+  geom_point(size=4.5, shape=21, color="black") +
+  geom_text(size =3) +
+  xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
+  ylab(paste0("PC3: ",pve$pve[3],"% variance")) +
+  theme_bw() +
+  ggtitle("plink: PC1, PC3")
+scale_fill_manual(values=c("#68228B",'#B22222',"#CD6090","#87CEFA", "#1874CD"))
+d
+
+# save as pdf
+#ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/PCA_1_3_plink.png",
+#       d, w=4, h=4)
+
+
+
+# ----------------------------------------------
+#snpRelate
 
 filename = "filtered.final_ids"
 filename.gds = paste0(filename, ".gds")

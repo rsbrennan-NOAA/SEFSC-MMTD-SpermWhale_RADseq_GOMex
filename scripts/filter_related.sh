@@ -16,7 +16,7 @@ mamba activate vcflib-1.0.9
 module load bio/vcftools/0.1.16
 
 # full vcf
-vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.final.vcf.gz --remove ~/spermWhaleRad/analysis/relatedness/relatedindivs.txt  --recode --recode-INFO-all --stdout  | bgzip > ~/spermWhaleRad/analysis/freebayes/freebayes_filtered_unrelated.vcf.gz
+vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.final_ids.vcf.gz --remove ~/spermWhaleRad/analysis/relatedness/relatedindivs.txt  --recode --recode-INFO-all --stdout  | bgzip > ~/spermWhaleRad/analysis/freebayes/freebayes_filtered_unrelated.vcf.gz
 
 # ld thinned:
 vcftools --gzvcf ~/spermWhaleRad/analysis/freebayes/filtered.final_LDthin.vcf.gz --remove ~/spermWhaleRad/analysis/relatedness/relatedindivs.txt  --recode --recode-INFO-all --stdout | bgzip   > ~/spermWhaleRad/analysis/freebayes/freebayes_ldthin_unrelated.vcf.gz

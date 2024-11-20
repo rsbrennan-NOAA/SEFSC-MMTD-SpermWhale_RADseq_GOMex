@@ -146,7 +146,6 @@ write.csv(out.order, file="../relatedness.csv", quote=F,row.names=F)
 
 
 # pull out sex of most related:
-half$sex_a <- pops$Lab.ID.. == half$id_a
 half$sex_a <- pops$Sex[match(half$id_a, pops$Lab.ID..)]
 half$sex_b <- pops$Sex[match(half$id_b, pops$Lab.ID..)]
 
@@ -206,35 +205,6 @@ ggsave("../figures/population_relatedness_scatter.pdf", p, h=3, w=5)
 ggsave("../figures/population_relatedness_scatter.png", p, h=3, w=5)
 
 
-
-
-
-
-
-ggplot(dat, aes(x=(dist), y=(theta))) +
-  geom_point() +
-  geom_smooth(method="loess")
-
-# subset to related indivs:
-filtered_dat <- dat %>%
-  filter(theta > 0.01)
-
-model_out <- lm(theta ~ log10(dist),data=dat)
-
-ggplot(dat, aes(x = dist, y = theta)) +
-  geom_point() +
-  geom_line(data = data.frame(dist = dat$dist, 
-                              fitted = fitted(model_out)),
-            aes(x = dist, y = fitted),
-            size=2, color="dodgerblue3")
-  
-
-ggplot(dat, aes(x=log10(dist), y=(theta))) +
-  geom_point() +
-  geom_smooth(method="lm")
-
-
-
 ############################################
 # stats:
 
@@ -244,75 +214,21 @@ model_out <- lm(theta ~ log10(dist),data=dat)
 summary(model_out)
 plot(model_out)
 
-
-# https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13234
-dat$theta_no0 <- dat$theta
-dat$theta_no0[dat$theta == 0] <- 0.0001
-dat$theta_arc <- asin(sqrt(dat$theta_no0))
-
-hist(dat$theta_arc, breaks=50)
-
-mod1 <- lm(theta_arc ~ dist, data=dat)
-summary(mod1)
-plot(mod1)
-
-model_frac_logit1 <- glm(theta ~ dist, 
-                         data = dat, 
-                         family = quasibinomial())
-
-summary(model_frac_logit1)
-
-plot(model_frac_logit1)
-
-library(betareg)
-model.beta = betareg(theta ~ dist, link = "logit", data=dat)
-summary(model.beta)
-
-plot(model.beta)
-
-dat$theta_no0 <- dat$theta
-dat$theta_no0[dat$theta == 0] <- 0.0001
-
-model.beta = betareg(theta ~ dist, link = "logit", data=dat)
-summary(model.beta)
+# not that good, but its generally in the ballpark of the results below.
 
 # zero inflated beta regression
 library(gamlss)
-model_zibeta <- gamlss(theta ~ dist, family = BEZI(), data=dat,
+model_zibeta_1 <- gamlss(theta ~ dist, family = BEZI(), data=dat,
                        control = gamlss.control(n.cyc = 200))
-summary(model_zibeta)
-plot(model_zibeta)
+summary(model_zibeta_1)
+
+plot(model_zibeta_1)
 
 model_zibeta <- gamlss(theta ~ dist, family = BEINF0, data=dat,
                        control = gamlss.control(n.cyc = 200))
 summary(model_zibeta)
 plot(model_zibeta)
 
-
-library(nlme)
-library(performance)
-
-
-
-
-
-
-
-
-library(lmtest)
-lrtest(model.beta)
-
-plot(model.beta)
-
-library(emmeans)
-
-joint_tests(model.beta)
-
-library(car)
-
-Anova(model.beta)
-
-plot(fitted(model.beta),
-     residuals(model.beta))
-
-
+# both give same results, but BEZI probably makes more sense. 
+# BEZI assumes same process generates zeros and non-zero. 
+# BEINFO assumes different process generates 0

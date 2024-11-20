@@ -1,6 +1,7 @@
 
 # first plot the plink result:
 library(ggplot2)
+library(dplyr)
 
 dat <- read.table("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/variants_NoLD_PCA.eigenvec", header=F)
 eigenval <- read.table("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/variants_NoLD_PCA.eigenval", header=F)
@@ -28,34 +29,26 @@ ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/pc_var.pn
 # rename our columns, just for ease
 colnames(dat) <- c("ID", "ID2", "PC1", "PC2", "PC3", "PC4", colnames(dat)[7:ncol(dat)])
 
-# add a population label:
-#dat$population <- substr(dat$ID, 1,2)
-
 # plot the PCA
 
 d <- ggplot(dat, aes(PC1, PC2, label=ID)) +
-  #geom_point(size=4.5, shape=21, color="black", fill="grey48") +
   geom_text(size =3) +
   xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
   ylab(paste0("PC2: ",pve$pve[2],"% variance")) +
   theme_bw() +
   ggtitle("plink: PC1, PC2")
-  #scale_fill_manual(values=c("#68228B",'#B22222',"#CD6090","#87CEFA", "#1874CD"))
 d
 
-# optional, output your pca to a pdf
 ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/PCA_1_2_plink.png",
        d, w=4, h=4)
 
 
 d <- ggplot(dat, aes(PC1, PC3, label=ID)) +
-  #geom_point(size=4.5, shape=21, color="black", fill="grey48") +
   geom_text(size =3) +
   xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
   ylab(paste0("PC3: ",pve$pve[3],"% variance")) +
   theme_bw() +
   ggtitle("plink: PC1, PC3"samples)
-#scale_fill_manual(values=c("#68228B",'#B22222',"#CD6090","#87CEFA", "#1874CD"))
 d
 
 ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/PCA_1_3_plink.png",
@@ -71,14 +64,12 @@ setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis")
 
 pops <- read.csv("../SW_Metadata.csv")
 
-# first run with snprelate
 # try with missing data allowed. then with no missing data. 
-
 filename = "filtered.final_ids"
 filename.gds = paste0(filename, ".gds")
 filename.vcf.gz = paste0(filename, ".vcf.gz")
-# 1 . Convert VCF to GDS
-#SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
+# Convert VCF to GDS
+SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
 
 gdsin = SeqArray::seqOpen(filename.gds)
 print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))

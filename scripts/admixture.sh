@@ -15,17 +15,13 @@ module load  bio/admixture/1.3.0
 module load bio/vcftools/0.1.16
 module load bio/plink/1.90b6.23
 
-# need to fix chromosome ids to work with admixture. very annoying. NC_041214.2 or NC_041214.1
+# need to fix chromosome ids to work with admixture. very annoying. but they need to be numbers
 cd ~/spermWhaleRad/analysis/pop_structure
 
-zcat ~/spermWhaleRad/analysis/freebayes/freebayes_ldthin_nonrelated.vcf.gz| \
+zcat ~/spermWhaleRad/analysis/freebayes/freebayes_ldthin_unrelated.vcf.gz| \
 grep -v "^##contig=<ID=N[CW]_"  | awk -F'\t' 'BEGIN {OFS="\t"} 
     /^#/ {print; next} 
     {split($1, a, /\./); sub(/^N[CW]_/, "", a[1]); $1 = a[1]; print}' > LDthin_unrelated_numCorrect.vcf
-
-#subset to unrelated indivs:
-vcftools --vcf LDthin_numCorrect.vcf --remove ~/spermWhaleRad/analysis/relatedness/relatedindivs.txt  --recode --recode-INFO-all --stdout  > LDthin_numCorrect_unrelated.vcf
-
 
 plink --vcf LDthin_unrelated_numCorrect.vcf \
 --make-bed --out LDthin_unrelated_numCorrect \
@@ -42,7 +38,6 @@ grep -h CV log*.out | cut -f 3- -d " " > cv.txt
 # only females:
 
 vcftools --vcf LDthin_numCorrect_unrelated.vcf --remove ~/spermWhaleRad/analysis/males_only.txt  --recode --recode-INFO-all --stdout  > LDthin_numCorrect_females.vcf
-
 
 plink --vcf LDthin_numCorrect_females.vcf \
 --make-bed --out LDthin_numCorrect_females \
