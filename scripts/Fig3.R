@@ -6,6 +6,7 @@
 library(ggplot2)
 library(stringr)
 library(ggbeeswarm)
+setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/")
 
 dat <- read.table("analysis/variants_NoLD_unrelated_PCA.eigenvec", header=F)
 eigenval <- read.table("analysis/variants_NoLD_unrelated_PCA.eigenval", header=F)

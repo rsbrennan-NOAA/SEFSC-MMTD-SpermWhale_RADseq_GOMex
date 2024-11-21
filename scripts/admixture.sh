@@ -48,3 +48,5 @@ for K in 1 2 3 4 5 6 7 8; \
 do admixture --cv LDthin_numCorrect_females.bed $K | tee log${K}.out; done
 
 grep -h CV log*.out | cut -f 3- -d " " > cv_females.txt
+
+~/spermWhaleRad/analysis/pop_structure/cv_females.txt

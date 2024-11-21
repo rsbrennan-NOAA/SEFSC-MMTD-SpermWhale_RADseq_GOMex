@@ -97,7 +97,7 @@ colnames(dat) <- c("PC1", "PC2", "PC3",colnames(dat)[4:ncol(dat)] )
 dat$IDs <- gsub("b", "",pca.out$sample.id)
 
 result <- dat %>%
-  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location, Sex), by = c("IDs" = "Lab.ID.."))
 
 # with ids
 d <- ggplot(result, aes(PC1, PC2, label=IDs)) +
