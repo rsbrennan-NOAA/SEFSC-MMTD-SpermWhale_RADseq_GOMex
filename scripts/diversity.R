@@ -3,6 +3,8 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(ggpubr)
+library(patchwork)
+
 
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/diversity/")
 
@@ -343,14 +345,7 @@ fis_plot <- ggplot(dat,
          shape = guide_legend(override.aes = list(size = 4))) 
 
 
-
-library(patchwork)
-
-
 # Modify each plot to remove x-axis labels except bottom plots
-# Assuming your plots are named plot1, plot2, plot3, and plot4
-
-# Top plots: remove x-axis text and title
 piplot_mod <- piplot + 
   theme(axis.text.x = element_blank(),
         axis.title.x = element_blank())
@@ -372,181 +367,4 @@ ggsave(file="../figures/fig4.pdf",grid_plots,
        w=7, h=5)
 ggsave(file="../figures/fig4.png",grid_plots,
        w=7, h=5)
-
-
-
-
-
-# -----------------------------------------------------------------------------------
-# check that estimates are consistent with other methods
-
-library(snpR)
-
-
-
-
-
-
-
-
-library(dartR)
-
-genl <- gl.read.vcf("filtered.final.vcf.gz")
-
-pops <- read.csv("../SW_Metadata.csv")
-
-genl@ind.names <- gsub("b", "",genl@ind.names)
-
-ids <- data.frame(IDs = genl@ind.names)
-result <- ids %>%
-  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location), by = c("IDs" = "Lab.ID.."))
-
-genl@pop <- as.factor(result$Pop.Structure.Location)
-
-gl.report.heterozygosity(genl, method="pop") 
-gl.test.heterozygosity(genl, nreps=1000)
-
-
-# -------------------------------------------------------------------------------
-# Fst
-# -------------------------------------------------------------------------------
-
-library(snpR)
-setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/")
-dat <- snpR::read_vcf("filtered.final.vcf.gz")
-pops <- read.csv("../SW_Metadata.csv")
-
-# add meta data information:
-## population
-colnames(dat) <- gsub("b", "",colnames(dat))
-ids <- data.frame(IDs = colnames(dat))
-result <- ids %>%
-  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location, Sex), by = c("IDs" = "Lab.ID.."))
-result$Pop.Structure.Location[result$Pop.Structure.Location =="Dry Tortuga"] <- c("Dry_Tortuga")
-
-sample_meta <- data.frame(pop = result$Pop.Structure.Location, sex=result$Sex)
-## order the population
-#sample_meta$pop <- factor(sample_meta$pop, levels=c("GA", "HP", "BC", "PC", "TR")) 
-
-# assign meta data to dat
-sample.meta(dat) <- sample_meta
-
-# calculate fst between the populations. 
-# Run bootstraps to calculate significance compared to random pop assignments. 
-# i.e., null that there is panmixia
-my.dat <- calc_pairwise_fst(dat, facets="pop", method = "WC", boot = 500)
-
-# first look at the results, just the head
-head(get.snpR.stats(my.dat, facets = "pop", stats = "fst"))
-
-fst_pvals <- get.snpR.stats(my.dat, facets = "pop", stats = "fst")$fst.matrix$pop$p
-#p1 Dry_Tortuga    NGOMex     WGOMex
-#<char>       <num>     <num>      <num>
-#  1:    Atlantic   0.3712575 0.1317365 0.11776447
-#2: Dry_Tortuga          NA 0.1477046 0.10379242
-#3:      NGOMex          NA        NA 0.06586826
-
-snpout <- get.snpR.stats(my.dat, facets = "pop", stats = "fst")
-snpout$fst.matrix$pop
-mean(filter(snpout$pairwise, comparison=="Atlantic~Dry_Tortuga")$fst, na.rm=T)
-tmp <- filter(snpout$pairwise, comparison=="Atlantic~Dry_Tortuga")$fst
-tmp[which(tmp <0)] <- 0
-mean(tmp, na.rm=T)
-
-# heatmap of the fst estimates:
-png("../figures/fst_heatmap.png", h=4, w=4, units="in", res=300)
-plot_pairwise_fst_heatmap(my.dat, facets="pop")
-dev.off()
-
-
-dat <- calc_ho(dat, facets="pop", boot=100)
-dat <- calc_fis(dat, facets="pop", boot=100)
-
-get.snpR.stats(dat, facets = "pop", stats="ho")
-
-get.snpR.stats(dat, facets = "pop", stats="fis", boot_confidence = 0.99)
-#facet    subfacet snp.facet snp.subfacet weighted_mean_fis
-#1   pop    Atlantic     .base        .base        0.10168761
-#2   pop Dry_Tortuga     .base        .base        0.06291019
-#3   pop      NGOMex     .base        .base        0.06533394
-#4   pop      WGOMex     .base        .base        0.05719921
-
-
-#---------------------------------------------
-# fst by sexes:meta()
-meta(dat)
-
-snp.meta(dat)$CHROM <- gsub("\\.1","",snp.meta(dat)$CHROM)
-snp.meta(dat)$CHROM <- gsub("\\.2","",snp.meta(dat)$CHROM)
-
-# calculate fst between the populations
-my.dat <- calc_pairwise_fst(dat, facets="sex", method = "WC")
-
-# first look at the results, just the head
-head(get.snpR.stats(my.dat, facets = "sex", stats = "fst"))
-
-
-snpout <- get.snpR.stats(my.dat, facets = "sex.CHROM", stats = "fst")$pairwise
-table(snpout$CHROM)
-snpout <- snpout[grep("NC_", snpout$CHROM),]
-chr1 <- calc_smoothed_averages(x = my.dat, 
-                               facets = "sex.CHROM",
-                               sigma = 50, # using a window size of 50 kb
-                               step = 10) # using a step size of 10kb between windows
-
-# pull out the smoothed values
-fst_smooth <- get.snpR.stats(chr1, facets = "sex.CHROM", stats ="fst")$pairwise.window
-fst_smooth <- fst_smooth[grep("NC_", fst_smooth$snp.subfacet),]
-
-# make plot
-p <- ggplot(snpout, aes(x = position, y = fst, colour = CHROM)) + 
-  #geom_point(alpha = 0.5) + 
-  theme_bw() +
-  theme(legend.position="none") +
-  ylim(-0.04,1)+  
-  geom_line(data=fst_smooth,
-              aes(x=position,y=fst), color="black") +
-  facet_wrap(~snp.subfacet, scales = "free_x")
-
-p
-
-
-
-
-
-
-chrplot <- snpout$pairwise[grep("NC",snpout$pairwise$CHROM),]
-plot_manhattan(chrplot, "fst", chr="CHROM")
-
-calc_smoothed_averages()
-
-sub7 <- calc_smoothed_averages(x = sub7, facets = "pop.chr",
-                               sigma = 200, # using a window size of 200
-                               step = 50) # using a step size of 50 between windows
-
-snpout$fst.matrix$pop
-mean(filter(snpout$pairwise, comparison=="Atlantic~Dry_Tortuga")$fst, na.rm=T)
-tmp <- filter(snpout$pairwise, comparison=="Atlantic~Dry_Tortuga")$fst
-tmp[which(tmp <0)] <- 0
-mean(tmp, na.rm=T)
-
-# heatmap of the fst estimates:
-png("../figures/fst_heatmap.png", h=4, w=4, units="in", res=300)
-plot_pairwise_fst_heatmap(my.dat, facets="pop")
-dev.off()
-
-
-dat <- calc_ho(dat, facets="pop")
-dat <- calc_fis(dat, facets="pop")
-
-get.snpR.stats(dat, facets = "pop", stats="ho")
-get.snpR.stats(dat, facets = "pop", stats="fis")
-#facet    subfacet snp.facet snp.subfacet weighted_mean_fis
-#1   pop    Atlantic     .base        .base        0.10168761
-#2   pop Dry_Tortuga     .base        .base        0.06291019
-#3   pop      NGOMex     .base        .base        0.06533394
-#4   pop      WGOMex     .base        .base        0.05719921
-
-
-
 

@@ -13,8 +13,9 @@
 
 module load bio/stacks/2.65
 
-# split the pops, also run fstats.
+populations --in-vcf ~/spermWhaleRad/analysis/freebayes/filtered.final.vcf.gz --popmap ~/spermWhaleRad/scripts/populations.txt --fstats --threads 14 --out-path ~/spermWhaleRad/analysis/pop_structure/populations_pops
 populations --in-vcf ~/spermWhaleRad/analysis/freebayes/filtered.final.vcf.gz --popmap ~/spermWhaleRad/scripts/populations_all.txt --fstats --threads 14 --out-path ~/spermWhaleRad/analysis/pop_structure/populations_all
+
 
 
 

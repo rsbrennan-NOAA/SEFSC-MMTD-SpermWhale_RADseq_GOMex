@@ -4,10 +4,12 @@ library(vcfR)
 library(adegenet)
 library(ggpubr)
 library(dplyr)
+library(poppr)
+
 
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis")
 
-vcf <- read.vcfR( "LDthin_numCorrect_nonrelated.vcf", verbose = FALSE )
+vcf <- read.vcfR( "freebayes_ldthin_unrelated.vcf.gz", verbose = FALSE )
 
 genl<-vcfR2genlight(vcf)
 
@@ -23,6 +25,7 @@ result <- ids %>%
 genl@pop <- as.factor(result$Pop.Structure.Location)
 
 ## Full data set
+# re-running pca, basically to make sure consistent again with plink, etc. 
 pca1 <- glPca(genl,center = T, scale = T, nf = 5)
 
 png("../figures/dapc_eigen.png", h=4, w=4, units="in", res=300)
@@ -50,7 +53,7 @@ pca1.p<-ggscatter(pca1.scores, x = "PC1", y = "PC2", color = "pop",
                    ellipse = T, ellipse.level = 0.95, size = 3,
                   xlab = paste0("PC1 (",round(pcvar[1,2]*100,2),"%)"),
                   ylab = paste0("PC2 (",round(pcvar[2,2]*100,2),"%)"),
-                  palette =c("#eac435","#557fc3", "#03cea4", "#fb4d3d")
+                  palette =c("#E69F00","#56B4E9", "#009E73", "#CC79A7")
 )
 ggsave("../figures/dapc_PCA.png",pca1.p, h=5, w=5)
 
@@ -62,24 +65,31 @@ pca2.p<-ggscatter(pca1.scores, x = "PC2", y = "PC3", color = "pop",
 pca2.p
 
 
-############ ----------------------------------------------------------------
+
+###------------------------------------------------------------------------
+###------------------------------------------------------------------------
+###------------------------------------------------------------------------
+# run dapc
+###------------------------------------------------------------------------
+###------------------------------------------------------------------------
+###------------------------------------------------------------------------
 
 # follow the k-1 recommendation for the number of PCAs. So k=4
 grp <- find.clusters(genl, n.pca=3, max.n.clust=40)
 
 # keep k-1: 3 
 # lowest BIC is 11 clusters- plateaus around 11. seems... incorrect.
-# do 4 instead.
+# do 4 instead, based on biology
 dapc1 <- dapc(genl, genl@pop, n.pca=3, n.da=4)
 
 #temp <- optim.a.score(dapc1)
-col.in <- c("#eac435","#557fc3", "#03cea4", "#fb4d3d")
+col.in <- c("#E69F00","#56B4E9", "#009E73", "#CC79A7")
 scatter.dapc(dapc1)
 scatter.dapc(dapc1, grp=genl@pop)
 
 png(file="../figures/dapc.4.png", h=4, w=4, units="in", res=300)
 scatter(dapc1, grp=genl@pop, 
-        bg="white", pch=c(15,19,17,18), col=col.in,
+        bg="white", pch=c(16,15,18,17), col=col.in,
         cex=2,
         cstar=0,clab=0,
         scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="bottomleft")
@@ -90,7 +100,7 @@ dev.off()
 # try with only 2 groups
 grp <- find.clusters(genl, max.n.clust=40)
 
-# keep k-1: 3 
+# keep k-1: 3 pcs
 # keep 11 clusters- plateaus around 11.
 newpop <- as.character(genl@pop)
 newpop <- ifelse(newpop == "Dry Tortuga", "Atlantic",newpop)
@@ -107,7 +117,7 @@ scatter.dapc(dapc2, grp=genl2@pop)
 
 png(file="../figures/dapc.2.png", h=4, w=4, units="in", res=300)
 scatter(dapc2, grp=genl2@pop, posi.da="bottomright", 
-        bg="white", pch=17:22, col=col.in,
+        bg="white", pch=c(16,15,18,17), col=col.in,
         cex=2,
         cstar=0,clab=0,
         scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="topright")
@@ -115,6 +125,9 @@ dev.off()
 
 
 
+###### --------------------------------------------------------------------------
+###### --------------------------------------------------------------------------
+###### --------------------------------------------------------------------------
 ###### --------------------------------------------------------------------------
 # leave one out, assignment success
 
@@ -154,7 +167,7 @@ mean(as.character(pred.sup$assign)==as.character(pop(x.sup)))
 
 table.value(table(pred.sup$assign, pop(x.sup)), col.lab=levels(pop(x.sup)))
 
-# loop to get some estimate of accuracy
+# repeat to get some estimate of accuracy
 n=100
 acc.out.4 <- rep(NA, n)
 df.out.4 <- as.data.frame(matrix(nrow=n, ncol=4))
@@ -225,7 +238,13 @@ for(i in 1:n){
 
 
 ####-------------------------------------------------------------------------------
-# find optimal PCs
+####-------------------------------------------------------------------------------
+####-------------------------------------------------------------------------------
+# find optimal PCs instead of the k-1 approach
+####-------------------------------------------------------------------------------
+####-------------------------------------------------------------------------------
+####-------------------------------------------------------------------------------
+
 
 # 4 groups
 
@@ -239,7 +258,6 @@ dapc4 <- dapc(genl, genl@pop,
 
 scatter(dapc4)
 
-library("poppr")
 pramx <- xvalDapc(tab(genl, NA.method = "mean"), pop(genl))
 
 names(pramx)
@@ -260,9 +278,7 @@ scatter(dapc4, grp=genl@pop,
 dev.off()
 
 
-# now can we actually discriminate?
-
-# loop to get some estimate of accuracy
+# get some estimate of accuracy
 n=100
 acc.out.4.16pcs <- rep(NA, n)
 
@@ -301,7 +317,6 @@ dapcTemp <- dapc(genl2, genl2@pop,
 ascores <- optim.a.score(dapcTemp, smart = FALSE, n.sim = 50)   # Optimal number of PCs: 5
   # but looks terrible
 
-library("poppr")
 pramx <- xvalDapc(tab(genl2, NA.method = "mean"), pop(genl2)) # also says 5 pcs
 
 names(pramx)
@@ -325,8 +340,6 @@ scatter(dapc2, grp=genl2@pop,
 
 dev.off()
 
-
-# now can we actually discriminate?
 
 # loop to get some estimate of accuracy
 n=100
@@ -352,7 +365,12 @@ boxplot(acc.out.2.5pcs)
 
 
 #-----------------------------------------------------------------
+#-----------------------------------------------------------------
+#-----------------------------------------------------------------
 # plot results
+#-----------------------------------------------------------------
+#-----------------------------------------------------------------
+#-----------------------------------------------------------------
 
 dplot <- data.frame(k = c(rep("4pops.3pcs", length(acc.out.4)),
                           rep("2pops.1pcs", length(acc.out.2)),
@@ -399,6 +417,9 @@ result
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # make plots that mirror thia,'s increasing PCs and shifting BIC from negative to positive slope
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # df to hold output
 outdf <- as.data.frame(matrix(ncol=3, nrow=0))

@@ -53,15 +53,37 @@ For questions contact Reid Brennan: reid.brennan@noaa.gov or reid.brennan@gmail.
 - DAPC
 	- `dapc.R`
 - genetic diversity
-	- Pi
+	- pi:
+		- Call allsites for accurate pi estimations: `freebayes_allSites.sh`
+		- filter this vcf: `filter.allsites.1.sh`
+		- calculate pi with Pixy: `pixy.sh`
 	- heterozygosity
-	- Fst
+		- `stacks_populations.sh`
+		- `diversity.R`
+	- `diversity.R` to do analyses, make plots, etc.
+	- `Fig3.R` also combines plots, calculates Fst 
 - Effective population size
+	- `Ne_estimations.md`
 
 Mitochondrial analysis
+	- `mitotyping.R` 
 
-- add here 
 
+Figures:
+- Fig. 1: `map.R`
+- Fig. 2: `relatedness.R`
+- Fig. 3: `Fig3.R`
+- Fig. 4: `diversity.R`
+- Fig. 5: `mitotyping.R`. Note that this figure required popart and was manually put together.
+
+Supplemental figs:
+- Fig. S1: `relatedness.R`
+- Fig. S2: `pca_unrelated.R`
+- Fig. S3: `admixture.R`
+- Fig. S4: `dapc.R`
+- Fig. S5: `dapc.R`
+- Fig. S6: `pca_unrelated.R`
+- Fig. S7: `admixture.R`
 
 
 

@@ -2,7 +2,7 @@
 # make nexus file for popart:
 library(ape)
 
-myseqs <- read.dna("analysis/mitotyping/Pmac_All_Align_complete_CR_truncated_RADSamples_only.fasta",format="fasta",as.matrix=FALSE)
+myseqs <- read.dna("analysis/mitotyping/Pmac_aligned.fasta",format="fasta",as.matrix=FALSE)
 myseqs.names <- names(myseqs)
 myseqs.nex.fn <- "analysis/mitotyping/Pmac_All.nex" # output in Nexus format
 write.nexus.data(as.character(myseqs),myseqs.nex.fn,interleaved=FALSE,gap="-",
@@ -18,25 +18,15 @@ library(seqinr)
 library(tidyverse)
 library(dplyr)
 library(ggpubr)
-setwd("~/projects/spermWhaleRad/")
 
 #data <- read.FASTA("analysis/mitotyping/Pmac_All_Align_completeCR_Jan2020-edit.fasta")
 data <- read.FASTA("analysis/mitotyping/Pmac_All_Align_complete_CR_truncated_RADSamples_only.fasta")
 
-spider::checkDNA(data)
-
 length(data)  # How many sequences
 hap <- haplotype(data, strict = FALSE, trailingGapsAsN = FALSE)
 
-
-# Get haplotype frequencies
-#h <- haploFreq(as.DNAbin(dna_sequences))
-
 names <- data.frame(IDs = labels(data))
 
-
-# h <- factor(attr(hap, "index"))
-#pop_freq <- table(h, names_with_pops$Pop.Structure.Location)
 # add region:
 
 pops <- read.csv("meta_data_submission.csv")
@@ -44,7 +34,6 @@ pops <- read.csv("meta_data_submission.csv")
 pops[,c(1,2)]
 
 hapInfo <- stack(setNames(attr(hap,"index"),rownames(hap)))
-
 
 names(hapInfo) <- c("index","haplotype")
 head(hapInfo)
@@ -61,15 +50,13 @@ names_with_pops <- merge(hapInfo,
                          by.y = "Lab.ID..")
 
 
-# Create the frequency table for pie charts
+# Create the frequency table 
 table(names_with_pops$Pop.Structure.Location)
 pop_freq <- table(names_with_pops$hap, names_with_pops$Pop.Structure.Location)
 
 
 net <- haploNet(hap)
-#net <- mjn(hap)
-#(r <- mjn(data))
-#plot(r)
+
 
 pdf("../figures/mito_network.pdf", h=4, w=4)
 
@@ -85,9 +72,16 @@ legend("bottomleft", colnames(pop_freq),
 
 dev.off()
 
+# this plot is very ugly. run it in popart instead and use that for ms. Results are very similar. 
+
+
 
 #--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 # calc pop gen 
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+
 library(adegenet)
 
 dat.gid <- DNAbin2genind(data)
@@ -150,6 +144,9 @@ for(i in 1:npop) {
 p_values
 
 
+###--------------------------
+# plot
+###--------------------------
 # convert fst to long
 
 melt_fst <- as_tibble(observed_fst, rownames = "Var1") %>%
@@ -173,12 +170,6 @@ melt_fst_pval<- as_tibble(p_values, rownames = "Var1") %>%
 melt_fst_pval <- melt_fst_pval%>%
   group_by(value) %>%
   filter(!(duplicated(paste0(pmin(Var1, Var2), pmax(Var1, Var2))) & !is.na(value)))
-
-
-
-
-
-
 
 
 # flip order for pvals, to put on other triangle:
@@ -249,6 +240,7 @@ p_fst <- ggplot(fst_plot_dat3, aes(y = Var2, x = Var1, fill = value)) +
   )
 
 
+### ----------------------
 # amova:
 library(poppr)
 
@@ -266,7 +258,11 @@ dat.gc.new.amova<- poppr.amova(dat.gc.new, ~Pop)
 dat.gc.new.amova
 dat.new.amova.test<- randtest(dat.gc.new.amova, nrepet = 999)
 
-#### -----------------------------------------------------------
+
+
+
+
+
 #### -----------------------------------------------------------
 #### -----------------------------------------------------------
 #### -----------------------------------------------------------
@@ -275,7 +271,7 @@ dat.new.amova.test<- randtest(dat.gc.new.amova, nrepet = 999)
 #### -----------------------------------------------------------
 #### -----------------------------------------------------------
 
-mydna <- read.dna("analysis/mitotyping/Pmac_All_Align_complete_CR_truncated_RADSamples_only.fasta",format="fasta")
+mydna <- read.dna("analysis/mitotyping/Pmac_aligned.fasta",format="fasta")
 
 ss <- sapply(2:73, function(z){
   length(seg.sites(mydna[1:z, ]))
@@ -292,7 +288,7 @@ nuc.div(mydna)
 hap.div(mydna)
 #0.7366819
 
-
+# get CI from bootstrapping
 n_reps <- 1000
 n_seqs <- nrow(mydna)
 results <- numeric(n_reps)
