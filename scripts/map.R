@@ -65,8 +65,8 @@ p <- ggplot() +
     legend.position="top",
     plot.margin = margin(r = 20, l = 5, b = 10, t = 5),  # Added this line
   legend.title=element_blank()) +
-  xlab("latitude")+
-  ylab("longitude") +
+  xlab("longitude") +
+  ylab("latitude")+
   coord_sf(xlim = c(-100, -65), ylim = c(22, 43), expand = FALSE)+
   annotation_scale(location = "bl", 
                    width_hint = 0.2, 
@@ -131,7 +131,7 @@ library(marmap)
 #
 #--------------#
 
-# from https://github.com/Tom-Jenkins/seascape_rda_tutorial/blob/master/2.Prepare_spatial_data/2.prepare_spatial_data.R
+# in part from https://github.com/Tom-Jenkins/seascape_rda_tutorial/blob/master/2.Prepare_spatial_data/2.prepare_spatial_data.R
 
 # Import coordinates of sites
 dat <- read.csv("../SW_Metadata.csv")
