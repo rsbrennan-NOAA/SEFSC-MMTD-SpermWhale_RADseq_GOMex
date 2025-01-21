@@ -9,8 +9,6 @@ write.nexus.data(as.character(myseqs),myseqs.nex.fn,interleaved=FALSE,gap="-",
                  missing="?",datablock = FALSE)
 
 
-
-
 #### ----------------------------------
 library(pegas)
 library(ape)
@@ -19,7 +17,6 @@ library(tidyverse)
 library(dplyr)
 library(ggpubr)
 
-#data <- read.FASTA("analysis/mitotyping/Pmac_All_Align_completeCR_Jan2020-edit.fasta")
 data <- read.FASTA("analysis/mitotyping/Pmac_All_Align_complete_CR_truncated_RADSamples_only.fasta")
 
 length(data)  # How many sequences
@@ -83,7 +80,7 @@ dev.off()
 #--------------------------------------------------------------------------------
 
 library(adegenet)
-
+library(hierfstat)
 dat.gid <- DNAbin2genind(data)
 
 strata(dat.gid) <- data.frame(Pop.Structure.Location = names_with_pops[,c(4)])
@@ -102,12 +99,12 @@ a
 
 pairwise.neifst(out,diploid=FALSE) # gives same as above
 a <- genet.dist(out, diploid=FALSE, method = "Nei87")
-
+a
 
 # Calculate Nei's GST (FST)
-nei.fst <- pairwise_Gst_Nei(dat.gid)
+nei.fst <- mmod::pairwise_Gst_Nei(dat.gid)
 
-# command below is wc87 fst, I think.
+# command below is wc87 fst, I believe
 wc.fst <- pairwise.WCfst(out, diploid=F)
 boot.ppfst(dat=out,nboot=1000,quant=c(0.025,0.975),diploid=FALSE)
 
@@ -117,6 +114,12 @@ boot.ppfst(dat=out,nboot=1000,quant=c(0.025,0.975),diploid=FALSE)
 
 # Calculate observed FST
 observed_fst <- pairwise.WCfst(out, diploid=F)
+#               Atlantic        NGOMex        WGOMex Dry Tortuga
+#Atlantic            NA  0.3547399965  0.5138892625  0.01360011
+#NGOMex      0.35474000            NA -0.0005847247  0.50172523
+#WGOMex      0.51388926 -0.0005847247            NA  0.65369306
+#Dry Tortuga 0.01360011  0.5017252270  0.6536930562          NA
+
 npop <- nrow(observed_fst)
 p_values <- matrix(NA, npop, npop)
 
@@ -257,10 +260,6 @@ strata(dat.gc.new) <- data.frame(Pop = strata(dat.gc)[sample(nInd(dat.gc)),])
 dat.gc.new.amova<- poppr.amova(dat.gc.new, ~Pop)
 dat.gc.new.amova
 dat.new.amova.test<- randtest(dat.gc.new.amova, nrepet = 999)
-
-
-
-
 
 
 #### -----------------------------------------------------------
@@ -478,7 +477,7 @@ for(pop in populations) {
 }
 
 
-
+#------------------------------------------------------------------------------
 
 
 
