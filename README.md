@@ -2,7 +2,7 @@
 
 This repository contains scripts to analyze RADseq data from 73 sperm whale samples across the Gulf of Mexico and Atlantic.
 
-Raw data can be found at: TBD
+Raw data can be found at NCBI bioproject PRJNA1189584
 
 All scripts are found in the `scripts` directory and their function is described below.
 
