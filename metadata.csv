@@ -1,0 +1,74 @@
+Lab.ID..,Pop.Structure.Location,Tissue.Source,Tissue.Type,Collection.Date,Latitude,Longitude,Sex
+Pmac002,Atlantic,stranding,Skin,09/20/1996,35.7653,-75.5268,F
+Pmac007,Atlantic,stranding,Skin,04/07/2002,33.6762,-78.8958,F
+Pmac055,Atlantic,biopsy,Skin,07/28/1998,40.3833,-67.65,M
+Pmac058,Atlantic,biopsy,Skin,07/18/2006,36.9267,-74.2763,M
+Pmac060,Atlantic,stranding,Skin,04/14/1999,35.4912,-75.4776,F
+Pmac061,Atlantic,stranding,Skin,06/30/2008,35.3469,-75.5009,M
+Pmac062,Atlantic,stranding,Skin,01/30/2004,34.6227,-76.5544,M
+Pmac063,Atlantic,stranding,Skin,03/29/2006,34.5873,-76.5356,F
+Pmac064,Atlantic,stranding,Skin,08/02/2011,32.9917,-79.551,F
+Pmac066,Atlantic,stranding,Skin,07/30/2005,26.3432,-80.0699,M
+Pmac132,Atlantic,biopsy,Skin,07/17/2006,36.202,-74.3853,F
+Pmac133,Atlantic,stranding,Skin,02/11/2013,35.2071,-75.6958,F
+Pmac135,Atlantic,stranding,Skin,01/10/2014,26.3839,-80.0666,M
+Pmac138,Atlantic,stranding,Skin,07/24/1995,26.5192,-80.0482,F
+Pmac035,Dry Tortuga,biopsy,Skin,07/04/2012,24.4717,-84.6507,M
+Pmac036,Dry Tortuga,biopsy,Skin,07/06/2012,25.9036,-84.6956,F
+Pmac038,Dry Tortuga,biopsy,Skin,07/09/2012,24.9986,-84.5372,F
+Pmac041,Dry Tortuga,biopsy,Skin,07/22/2012,25.0649,-85.0016,M
+Pmac043,Dry Tortuga,biopsy,Skin,07/23/2012,24.4788,-84.5865,F
+Pmac050,Dry Tortuga,biopsy,Skin,07/28/2012,25.5232,-84.5744,F
+Pmac051,Dry Tortuga,biopsy,Skin,07/28/2012,25.6634,-84.7015,F
+Pmac052,Dry Tortuga,biopsy,Skin,07/31/2012,24.7919,-84.2839,M
+Pmac053,Dry Tortuga,biopsy,Skin,07/31/2012,24.6916,-84.6242,F
+Pmac054,Dry Tortuga,biopsy,Skin,08/02/2012,26.2549,-84.784,M
+Pmac070,Dry Tortuga,biopsy,Skin,05/14/2000,24.276,-83.4765,F
+Pmac073,Dry Tortuga,biopsy,Skin,06/20/2009,25.5225,-84.6853,M
+Pmac076,Dry Tortuga,biopsy,Skin,07/14/2014,24.5071,-84.279,F
+Pmac077,Dry Tortuga,biopsy,Skin,07/15/2014,24.3409,-83.5348,F
+Pmac079,Dry Tortuga,biopsy,Skin,07/21/2014,24.068,-81.7714,M
+Pmac081,Dry Tortuga,biopsy,Skin,07/22/2014,24.022,-82.1732,F
+Pmac084,Dry Tortuga,biopsy,Skin,07/24/2014,24.0121,-81.7406,M
+Pmac085,Dry Tortuga,biopsy,Skin,07/25/2014,24.0947,-81.6744,M
+Pmac028,NGOMex,biopsy,Skin,07/08/2002,28.992,-88.239,M
+Pmac030,NGOMex,biopsy,Skin,07/10/2003,28.2684,-89.7147,F
+Pmac031,NGOMex,biopsy,Skin,07/05/2003,28.637,-88.7452,F
+Pmac032,NGOMex,biopsy,Skin,07/06/2004,28.095,-89.677,F
+Pmac108,NGOMex,biopsy,Skin,02/19/2010,28.7982,-88.3609,M
+Pmac110,NGOMex,biopsy,Skin,06/24/2002,28.012,-89.696,F
+Pmac111,NGOMex,biopsy,Skin,06/28/2002,29.208,-87.178,M
+Pmac113,NGOMex,biopsy,Skin,07/01/2002,28.903,-88.099,M
+Pmac114,NGOMex,biopsy,Skin,07/02/2002,28.866,-88.496,F
+Pmac115,NGOMex,biopsy,Skin,07/03/2002,28.808,-88.684,F
+Pmac117,NGOMex,biopsy,Skin,07/06/2002,28.445,-88.991,M
+Pmac119,NGOMex,biopsy,Skin,07/07/2002,28.742,-88.875,F
+Pmac120,NGOMex,biopsy,Skin,07/03/2003,28.6467,-88.9979,F
+Pmac121,NGOMex,biopsy,Skin,07/06/2003,29.1402,-87.9652,F
+Pmac123,NGOMex,biopsy,Skin,07/09/2003,28.5487,-88.9961,F
+Pmac124,NGOMex,biopsy,Skin,07/09/2003,28.4822,-89.0432,F
+Pmac125,NGOMex,biopsy,Skin,07/11/2003,28.6016,-88.8991,F
+Pmac126,NGOMex,biopsy,Skin,07/11/2003,28.7965,-88.763,M
+Pmac127,NGOMex,biopsy,Skin,06/06/2004,28.2467,-89.6693,F
+Pmac128,NGOMex,biopsy,Skin,07/03/2004,28.935,-88.222,M
+Pmac129,NGOMex,biopsy,Skin,07/10/2004,28.206,-89.312,F
+Pmac130,NGOMex,biopsy,Skin,08/05/2004,29.099,-87.856,M
+Pmac131,NGOMex,biopsy,Skin,08/01/2005,29.241,-87.305,M
+Pmac033,WGOMex,biopsy,Skin,06/26/2005,27.299,-93.768,F
+Pmac086,WGOMex,biopsy,Skin,06/02/2003,27.265,-93.825,F
+Pmac087,WGOMex,biopsy,Skin,06/02/2003,27.399,-93.885,F
+Pmac089,WGOMex,biopsy,Skin,06/04/2003,27.423,-93.842,F
+Pmac090,WGOMex,biopsy,Skin,06/04/2003,27.419,-93.809,F
+Pmac091,WGOMex,biopsy,Skin,06/11/2005,26.567,-95.732,F
+Pmac092,WGOMex,biopsy,Skin,06/11/2005,26.545,-95.799,M
+Pmac093,WGOMex,biopsy,Skin,06/15/2005,26.974,-95.141,M
+Pmac094,WGOMex,biopsy,Skin,06/15/2005,26.954,-95.137,F
+Pmac095,WGOMex,biopsy,Skin,06/18/2005,26.976,-95.408,F
+Pmac096,WGOMex,biopsy,Skin,06/18/2005,26.96,-95.398,F
+Pmac097,WGOMex,biopsy,Skin,06/21/2005,26.931,-95.484,F
+Pmac098,WGOMex,biopsy,Skin,06/21/2005,26.928,-95.488,F
+Pmac100,WGOMex,biopsy,Skin,06/24/2005,27.274,-93.845,F
+Pmac101,WGOMex,biopsy,Skin,06/24/2005,27.311,-93.858,F
+Pmac102,WGOMex,biopsy,Skin,06/27/2005,27.502,-94.554,F
+Pmac103,WGOMex,biopsy,Skin,06/28/2005,27.084,-95.074,F
+Pmac104,WGOMex,biopsy,Skin,06/28/2005,27.017,-95.208,F
