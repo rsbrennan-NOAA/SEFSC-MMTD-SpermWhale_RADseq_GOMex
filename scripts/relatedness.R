@@ -67,7 +67,7 @@ half[,c("id_a", "id_b", "theta", "KING")]
 # more distant
   #Pmac117|Pmac096
 
-indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac84", "Pmac117", "Pmac96")
+indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac084", "Pmac117", "Pmac096")
               # M         F           F           F                      M                    M          M         M         M
 write.table(file= "C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/relatedindivs.txt", 
             data.frame(indivrm), row.name=F, col.names = F, quote = F)
@@ -96,23 +96,29 @@ for(i in 1:nrow(dat)){
   dat$pop_b[i] <- pops$Pop.Structure.Location[which(pops$Lab.ID.. == dat$id_b[i])]
 }
 
+dat$pop_a[dat$pop_a == "WGOMex"] <- "W. Gulf"
+dat$pop_b[dat$pop_b == "WGOMex"] <- "W. Gulf"
+dat$pop_a[dat$pop_a == "NGOMex"] <- "N. Gulf"
+dat$pop_b[dat$pop_b == "NGOMex"] <- "N. Gulf"
+
 library(dplyr)
 
 dat <- dat %>%
   mutate(comparison = case_when(
     pop_a == "Atlantic" & pop_b == "Atlantic" ~ "Atlantic",
-    pop_a == "NGOMex" & pop_b == "NGOMex" ~ "NGOMex",
+    pop_a == "N. Gulf" & pop_b == "N. Gulf" ~ "N. Gulf",
     pop_a == "Dry Tortuga" & pop_b == "Dry Tortuga" ~ "Dry Tortuga",
-    pop_a == "WGOMex" & pop_b == "WGOMex" ~ "WGOMex",
-    (pop_a == "Atlantic" & pop_b == "NGOMex") | (pop_a == "NGOMex" & pop_b == "Atlantic") ~ "Atlantic_NGOMex",
+    pop_a == "W. Gulf" & pop_b == "W. Gulf" ~ "W. Gulf",
+    (pop_a == "Atlantic" & pop_b == "N. Gulf") | (pop_a == "N. Gulf" & pop_b == "Atlantic") ~ "Atlantic_N. Gulf",
     (pop_a == "Atlantic" & pop_b == "Dry Tortuga") | (pop_a == "Dry Tortuga" & pop_b == "Atlantic") ~ "Atlantic_DryTortuga",
-    (pop_a == "Atlantic" & pop_b == "WGOMex") | (pop_a == "WGOMex" & pop_b == "Atlantic") ~ "Atlantic_WGOMex",
-    (pop_a == "Dry Tortuga" & pop_b == "WGOMex") | (pop_a == "WGOMex" & pop_b == "Dry Tortuga") ~ "DryTortuga_WGOMex",
-    (pop_a == "Dry Tortuga" & pop_b == "NGOMex") | (pop_a == "NGOMex" & pop_b == "Dry Tortuga") ~ "DryTortuga_NGOMex",
-    (pop_a == "WGOMex" & pop_b == "NGOMex") | (pop_a == "NGOMex" & pop_b == "WGOMex") ~ "WGOMex_NGOMex",
+    (pop_a == "Atlantic" & pop_b == "W. Gulf") | (pop_a == "W. Gulf" & pop_b == "Atlantic") ~ "Atlantic_W. Gulf",
+    (pop_a == "Dry Tortuga" & pop_b == "W. Gulf") | (pop_a == "W. Gulf" & pop_b == "Dry Tortuga") ~ "DryTortuga_W. Gulf",
+    (pop_a == "Dry Tortuga" & pop_b == "N. Gulf") | (pop_a == "N. Gulf" & pop_b == "Dry Tortuga") ~ "DryTortuga_N. Gulf",
+    (pop_a == "W. Gulf" & pop_b == "N. Gulf") | (pop_a == "N. Gulf" & pop_b == "W. Gulf") ~ "W. Gulf_N. Gulf",
     
     TRUE ~ "other"  # Default case
   ))
+
 
 dat$comp_color <- dat$comparison
 
@@ -182,11 +188,14 @@ for(i in 1:nrow(dat)){
 dat$dist <- as.numeric(dat$dist)
 # one pair is 0, change this to 1 for plotting:
 dat$dist[dat$dist == 0] <- 1
-dat$comp_color <- factor(dat$comp_colo, levels = c("Between Population", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex"))
+dat$comp_color <- factor(dat$comp_colo, levels = c("Between Population", "Atlantic", "Dry Tortuga", "N. Gulf", "W. Gulf"))
 custom_sort <- function(x) {
   factor(x, levels = c("Between Population", unique(x[x != "Between Population"])))
 }
 df_sorted <- dat[order(custom_sort(dat$comp_color)), ]
+
+# 
+
 
 p <- ggplot(df_sorted, aes(x=(dist), y=theta,fill=comp_color, color=comp_color, shape=comp_color)) +
   geom_point(size=2) +
@@ -232,3 +241,103 @@ plot(model_zibeta)
 # both give same results, but BEZI probably makes more sense. 
 # BEZI assumes same process generates zeros and non-zero. 
 # BEINFO assumes different process generates 0
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+# compare relatedness to q-value in admixture
+
+
+samplelist <- read_delim("LDthin_numCorrect.fam",
+                         col_names = c("individual", "id2", "a", "b", "c", "d"),
+                         delim=" ")
+
+# read in all date, in a loop
+## first create an empty dataframe
+all_data <- tibble(individual=character(),
+                   k=numeric(),
+                   Q=character(),
+                   value=numeric())
+
+# then add all results to this
+for (k in 2:8){
+  data <- read_delim(paste0("LDthin_numCorrect.",k,".Q"),
+                     col_names = paste0("Q",seq(1:k)),
+                     delim=" ")
+  data$sample <- samplelist$individual
+  data$k <- k
+  #This step converts from wide to long.
+  data %>% gather(Q, value, -sample,-k) -> data
+  all_data <- rbind(all_data,data)
+}
+
+pops <- read.csv("../SW_Metadata.csv")
+
+all_data$IDs <- gsub("b", "",all_data$sample)
+
+head(all_data)
+
+k2 <- all_data %>%
+  filter(k == 2 & Q == "Q1")
+
+
+samplelist$individual <- gsub("b", "", samplelist$individual)
+for(i in 1:nrow(dat)){
+  dat$id_a[i] <- samplelist$individual[(dat$a[i] + 1)]    
+  dat$id_b[i] <- samplelist$individual[(dat$b[i] + 1)]
+  # add population
+  dat$pop_a[i] <- pops$Pop.Structure.Location[which(pops$Lab.ID.. == dat$id_a[i])]
+  dat$pop_b[i] <- pops$Pop.Structure.Location[which(pops$Lab.ID.. == dat$id_b[i])]
+}
+
+library(dplyr)
+
+dat <- dat %>%
+  mutate(comparison = case_when(
+    pop_a == "Atlantic" & pop_b == "Atlantic" ~ "Atlantic",
+    pop_a == "N. Gulf" & pop_b == "N. Gulf" ~ "N. Gulf",
+    pop_a == "Dry Tortuga" & pop_b == "Dry Tortuga" ~ "Dry Tortuga",
+    pop_a == "W. Gulf" & pop_b == "W. Gulf" ~ "W. Gulf",
+    (pop_a == "Atlantic" & pop_b == "N. Gulf") | (pop_a == "N. Gulf" & pop_b == "Atlantic") ~ "Atlantic_N. Gulf",
+    (pop_a == "Atlantic" & pop_b == "Dry Tortuga") | (pop_a == "Dry Tortuga" & pop_b == "Atlantic") ~ "Atlantic_DryTortuga",
+    (pop_a == "Atlantic" & pop_b == "W. Gulf") | (pop_a == "W. Gulf" & pop_b == "Atlantic") ~ "Atlantic_W. Gulf",
+    (pop_a == "Dry Tortuga" & pop_b == "W. Gulf") | (pop_a == "W. Gulf" & pop_b == "Dry Tortuga") ~ "DryTortuga_W. Gulf",
+    (pop_a == "Dry Tortuga" & pop_b == "N. Gulf") | (pop_a == "N. Gulf" & pop_b == "Dry Tortuga") ~ "DryTortuga_N. Gulf",
+    (pop_a == "W. Gulf" & pop_b == "N. Gulf") | (pop_a == "N. Gulf" & pop_b == "W. Gulf") ~ "W. Gulf_N. Gulf",
+    
+    TRUE ~ "other"  # Default case
+  ))
+
+
+# Create lookup values from k2
+k2_lookup <- setNames(k2$value, k2$IDs)
+
+# Add new columns
+dat$q1_id_a <- k2_lookup[dat$id_a]
+dat$q1_id_b <- k2_lookup[dat$id_b]
+mdat <- dat[!is.na(dat$q1_id_a),]
+mdat <- mdat[!is.na(mdat$q1_id_b),]
+mdat[,c("id_a", "id_b", "theta", "KING", "q1_id_a","q1_id_b")]
+
+  
+plot(mdat$theta, mdat$value)
+
+high <- unique(mdat$IDs[which(mdat$theta > 0.03)])
+mdat[which(mdat$theta > 0.02),c("id_a", "id_b", "theta", "KING", "q1_id_a","q1_id_b")]
+
+tmpd <- mdat[which(mdat$id_b == "Pmac002"),c("id_a", "id_b", "theta", "KING", "value")]
+
+mdat[mdat$theta > 0.03,c("id_a", "id_b", "theta", "KING", "value")]
+tmpd
+
+mdat[which(mdat$q1_id_a > 0.9 & mdat$q1_id_b > 0.9) ,c("id_a", "id_b", "theta", "KING", "q1_id_a","q1_id_b")]

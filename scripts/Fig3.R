@@ -29,6 +29,9 @@ result <- dat %>%
 eigenval <- read.table("analysis/variants_NoLD_unrelated_PCA.eigenval", header=F)
 pve <- data.frame(PC=1:20, pve=round(eigenval$V1/sum(eigenval$V1)*100,1))
 
+result$Pop.Structure.Location[result$Pop.Structure.Location == "WGOMex"] <- "W. Gulf"
+result$Pop.Structure.Location[result$Pop.Structure.Location == "NGOMex"] <- "N. Gulf"
+
 # with points
 p_pca <- ggplot(result, aes(PC1, PC2, fill=Pop.Structure.Location, shape=Pop.Structure.Location)) +
   geom_point(size =3, color="black") +
@@ -149,8 +152,15 @@ fst_plot_dat <- rbind(melt_fst, melt_fst_pval2)
 
 fst_plot_dat$group[melt_fst$Var1 == melt_fst$Var2] <- "diagonal"
 
-fst_plot_dat$Var1 <- factor(fst_plot_dat$Var1, c("Atlantic", "Dry Tortuga", "NGOMex", "WGOMex"))
-fst_plot_dat$Var2 <- factor(fst_plot_dat$Var2, c("Atlantic", "Dry Tortuga", "NGOMex", "WGOMex"))
+fst_plot_dat$Var1 <- as.character(fst_plot_dat$Var1 )
+fst_plot_dat$Var2 <- as.character(fst_plot_dat$Var2 )
+fst_plot_dat$Var1[fst_plot_dat$Var1 == "NGOMex"] <- "N. Gulf"
+fst_plot_dat$Var2[fst_plot_dat$Var2 == "NGOMex"] <- "N. Gulf"
+fst_plot_dat$Var1[fst_plot_dat$Var1 == "WGOMex"] <- "W. Gulf"
+fst_plot_dat$Var2[fst_plot_dat$Var2 == "WGOMex"] <- "W. Gulf"
+
+fst_plot_dat$Var1 <- factor(fst_plot_dat$Var1, c("Atlantic", "Dry Tortuga", "N. Gulf", "W. Gulf"))
+fst_plot_dat$Var2 <- factor(fst_plot_dat$Var2, c("Atlantic", "Dry Tortuga", "N. Gulf", "W. Gulf"))
 
 
 ggplot(fst_plot_dat, aes()) +
@@ -162,8 +172,8 @@ fst_plot_dat2 <- fst_plot_dat
 
 # add other diags
 fst_plot_dat2 <- rbind(fst_plot_dat2, data.frame(
-                          Var1 = c("Atlantic", "WGOMex"),
-                          Var2 = c("Atlantic", "WGOMex"),
+                          Var1 = c("Atlantic", "W. Gulf"),
+                          Var2 = c("Atlantic", "W. Gulf"),
                           value = c(NA, NA),
                           group= c("diagonal", "diagonal")
                     )

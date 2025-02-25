@@ -39,6 +39,9 @@ pltpt <- data.frame(
   region = dat_in$Pop.Structure.Location
 )
 
+pltpt$region[pltpt$region == "WGOMex"] <- "W. Gulf"
+pltpt$region[pltpt$region == "NGOMex"] <- "N. Gulf"
+
 # 
 p <- ggplot() +
   geom_sf(data = world, fill = "grey90", color = "grey70") +
