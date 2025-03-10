@@ -30,7 +30,7 @@ samplelist <- read_delim("indivs.txt",
 
 # check results
 # remember indivs are 0 indexed in ngsadmix
-half <- dat[which(dat$theta > 0.065 & dat$KING > 0.0442),] 
+half <- dat[which(dat$theta > 0.0625 & dat$KING > 0.0442),] 
   # king threshold for cousins. Harder beyond this- https://www.kingrelatedness.com/manual.shtml#WITHIN
   # theta thresholds: full sib: 0.25, half: 0.125, 3rd degree- 0.065
 half$id_a <- NA
@@ -41,8 +41,8 @@ for(i in 1:nrow(half)){
 }
 
 half[,c("id_a", "id_b", "theta", "KING")]
-
-
+nrow(half)
+# 13
 ## be a bit more lenient, to acct for errors in estimations. 
 # check results
 # remember indivs are 0 indexed in ngsadmix
