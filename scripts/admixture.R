@@ -116,14 +116,12 @@ ggsave("../figures/Admixture_plot.png", combined_plot, width = 7, height = 8, un
 
 
 
-##############
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # females
-
-#admixture
-library(tidyverse)
-
 # read in CV scores:
-cvin <- read.csv("cv_females.txt", sep=":", header=F)
+cvin <- read.csv("pop_structure/cv_females.txt", sep=":", header=F)
 colnames(cvin) <- c("id", "cv")
 # fix the formatting to get K into numeric format
 cvin$K <- substr(cvin$id, 4, 4)
@@ -133,14 +131,14 @@ p <- ggplot(cvin,aes(x=K,y=cv)) +
   geom_point(size=3)  + geom_line(group=1)
 
 p
-#ggsave("../figures/cv_females.png", p, h=3, w=3)
+ggsave("../figures/cv_females.png", p, h=3, w=3)
 
 # actual results:
 
-samplelist <- read_delim("female_ids.txt",
-                         col_names = c("individual"),
+samplelist <- read_delim("pop_structure/variants_NoLD_unrelated_femalesOnly_PCA.fam",
+                        col_names = c("individual"),
                          delim=" ")
-
+head(samplelist)
 # read in all date, in a loop
 ## first create an empty dataframe
 all_data <- tibble(sample=character(),
@@ -150,7 +148,7 @@ all_data <- tibble(sample=character(),
 
 # then add all results to this
 for (k in 2){
-  data <- read_delim(paste0("female_qvalues.",k,".Q"),
+  data <- read_delim(paste0("pop_structure/LDthin_numCorrect_unrelated_females.",k,".Q"),
                      col_names = paste0("Q",seq(1:k)),
                      delim=" ")
   data$sample <- samplelist$individual

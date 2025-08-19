@@ -43,3 +43,11 @@ plink --vcf ~/spermWhaleRad/analysis/freebayes/freebayes_filtered_unrelated_ldth
 
 plink --bfile variants_unrelated_NoLD_2 \
   --pca --out variants_unrelated_NoLD_2_PCA --allow-extra-chr --double-id
+
+
+
+# female analysis 
+
+plink --bfile variants_unrelated_NoLD \
+--pca --out variants_NoLD_unrelated_femalesOnly_PCA --allow-extra-chr --double-id \
+--keep ~/spermWhaleRad/female_list.txt

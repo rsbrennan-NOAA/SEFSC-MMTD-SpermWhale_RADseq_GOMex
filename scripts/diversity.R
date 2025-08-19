@@ -10,7 +10,7 @@ setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/diversity
 
 dat_pops <- read.csv("50kb_pi.txt", header=T, sep="\t")
 dat_all <- read.csv("50kb_all_pi.txt", header=T, sep="\t")
-dat.na <- dat[!is.na(dat$avg_pi),]
+dat.na <- dat_pops[!is.na(dat_pops$avg_pi),]
 dat_all.na <- dat_all[!is.na(dat_all$avg_pi),]
 nrow(dat.na)
 # 51748
@@ -35,7 +35,7 @@ ggplot(dat_pops.sub, aes(x=pop, y=(avg_pi))) +
   geom_boxplot() +
   coord_cartesian(ylim = c(0, 0.002))
 sum(dat_pops.sub$avg_pi == 0)
-# 22275
+# 20306
 
 # find average:
 # Note that if the user wishes to combine information across windows 
@@ -50,7 +50,7 @@ sum(dat_all.sub$count_diffs)/sum(dat_all.sub$count_comparisons)
 mean(dat_pops.sub$avg_pi, na.rm=T)
 # actually pretty similar.
 
-pi <- dat.sub %>%
+pi <- dat_pops.sub %>%
   group_by(pop) %>%
   summarise(overall_pi = sum(count_diffs) / sum(count_comparisons))
 pi
@@ -144,19 +144,28 @@ results_combined <- bind_rows(
   results_all %>% mutate(population = "All Populations")
 )
 
+results_combined$population <- gsub("NGOMex", "N. Gulf", results_combined$population)
+results_combined$population <- gsub("WGOMex", "W. Gulf", results_combined$population)
+
+population_order <- c("Atlantic", "Dry Tortuga","All Populations", "N. Gulf", "W. Gulf")
+
 results_combined$population <- factor(results_combined$population, levels = population_order)
-legend_order <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
+legend_order <- c("All Populations", "Atlantic", "Dry Tortuga", "N. Gulf", "W. Gulf")
 results_combined$population_legend <- factor(results_combined$population, levels = legend_order)
+
+results_combined$estimate_10 <- results_combined$estimate * 1000
+results_combined$ci_lower_10 <- results_combined$ci_lower * 1000
+results_combined$ci_upper_10 <- results_combined$ci_upper * 1000
 
 piplot <- ggplot(results_combined, 
                  aes(x = population, 
-                     y = estimate, 
+                     y = estimate_10, 
                      fill = population_legend, shape=population_legend)) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_errorbar(aes(ymin = ci_lower_10, ymax = ci_upper_10), width = 0.2) +
   geom_point(aes(size = ifelse(population == "All Populations", "All", "Population"))) +
   scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
   theme_classic(base_size = 12) +
-  ylab("Genetic\ndiversity") +
+  ylab(expression(atop("Genetic diversity", paste("(10"^"-3", ")")))) +
   scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
   scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
   scale_shape_manual(values=c(21,21,22,23,24))+    
@@ -280,9 +289,9 @@ in_pops <- read.csv("filtered.final.p.sumstats_summary.tsv", header=T, sep="\t")
 in_all <- read.csv("filtered.final.p.sumstats_summary_all.tsv", header=T, sep="\t")
 dat <- rbind(in_all, in_pops)
 head(dat)
-dat$population <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex") 
-dat$population_legend <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
-population_order <- c("Atlantic", "Dry Tortuga","All Populations", "NGOMex", "WGOMex")
+dat$population <- c("All Populations", "Atlantic", "Dry Tortuga", "N. Gulf", "W. Gulf") 
+dat$population_legend <- c("All Populations", "Atlantic", "Dry Tortuga", "N. Gulf", "W. Gulf")
+population_order <- c("Atlantic", "Dry Tortuga","All Populations", "N. Gulf", "W. Gulf")
 dat$population <- factor(dat$population, levels = population_order)
 
 
@@ -323,6 +332,49 @@ exphet_plot <- ggplot(dat,
          shape = guide_legend(override.aes = list(size = 4))) 
 
 
+# combine obs and expected:
+
+combined_plot <- ggplot(dat, 
+                        aes(x = population, 
+                            y = Exp_Het, 
+                            fill = population_legend, shape=population_legend)) +
+  geom_errorbar(aes(ymin = Exp_Het-StdErr.3, ymax = Exp_Het+StdErr.3), width = 0.2) +
+  geom_point(aes(size = ifelse(population == "All Populations", "All", "Population"))) +
+  geom_errorbar(aes(ymin = Obs_Het-StdErr.2, ymax = Obs_Het+StdErr.2), width = 0.2) +
+  geom_point(aes(x = population, 
+                 y = Obs_Het,
+                 size = ifelse(population == "All Populations", "All", "Population"),
+                 color=population_legend),
+                 fill="white", stroke=1.5, show.legend = FALSE) +
+  scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
+  theme_classic(base_size = 12) +
+  ylab("Heterozygosity") +
+  scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,21,22,23,24))+    
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) +
+  geom_point(data = data.frame(x = c("All Populations", "All Populations"), 
+                               y = c(0.255, 
+                                     0.25)),
+             aes(x = x, y = y), 
+             shape = c(21, 21), size = 4, fill = c("black", "white"), color = "black", 
+             inherit.aes = FALSE) +
+  # Add custom legend text
+  geom_text(data = data.frame(x = c("All Populations", "All Populations"), 
+                              y = c(0.255, 
+                                    0.25),
+                              label = c("    Expected", "    Observed")),
+            aes(x = x, y = y, label = label), 
+            hjust = 0, size = 3, inherit.aes = FALSE) 
+
+
+combined_plot
+
+
 
 #FIS
 
@@ -342,7 +394,8 @@ fis_plot <- ggplot(dat,
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.title = element_blank()) +
   guides(fill = guide_legend(override.aes = list(size = 4)),  
-         shape = guide_legend(override.aes = list(size = 4))) 
+         shape = guide_legend(override.aes = list(size = 4))) +
+  ylim(0, 0.115)
 
 
 # Modify each plot to remove x-axis labels except bottom plots
@@ -364,7 +417,61 @@ grid_plots <- (guide_area() / (piplot_mod + obshet_plot_mod) / (exphet_plot + fi
 grid_plots
 
 ggsave(file="../figures/fig4.pdf",grid_plots,
-       w=7, h=5)
+       w=8, h=5)
 ggsave(file="../figures/fig4.png",grid_plots,
-       w=7, h=5)
+       w=8, h=5)
+
+
+
+# 3 panel plot:
+
+ggsave(file="../figures/fig4_revision.pdf",
+       ggarrange(piplot, combined_plot, fis_plot, common.legend = T, nrow=1, labels="AUTO"),
+       w=7, h=3.3)
+ggsave(file="../figures/fig4_revision.png",
+       ggarrange(piplot, combined_plot, fis_plot, common.legend = T, nrow=1, labels="AUTO"),
+       w=7, h=3.3)
+
+
+
+
+# het pre and post dwh:
+
+dat <- snpR::read_vcf("analysis/filtered.final.vcf.gz")
+pops <- read.csv("SW_Metadata.csv")
+
+colnames(dat) <- gsub("b", "",colnames(dat))
+ids <- data.frame(IDs = colnames(dat))
+result <- ids %>%
+  left_join(pops %>% select( Lab.ID.., Pop.Structure.Location, Sex, Collection.Date), by = c("IDs" = "Lab.ID.."))
+result$Pop.Structure.Location[result$Pop.Structure.Location =="Dry Tortuga"] <- c("Dry_Tortuga")
+
+sample_meta <- data.frame(pop = result$Pop.Structure.Location, sex=result$Sex,
+                          date=result$Collection.Date)
+
+sample_meta[sample_meta$pop == "Atlantic",]
+sample_meta[sample_meta$pop == "Dry_Tortuga",]
+sample_meta[sample_meta$pop == "NGOMex",]
+sample_meta[sample_meta$pop == "WGOMex",]
+
+sample_meta$DWH <- "PreDWH"
+sample_meta$date <- as.Date(sample_meta$date, format = "%m/%d/%Y")
+sample_meta$DWH[sample_meta$date > as.Date("2003-06-01")] <- "Post-DWH"
+table(sample_meta$DWH)
+sample_meta <- sample_meta[, -3]
+sample.meta(dat) <- sample_meta
+
+# calculate fst between the populations
+my.dat <- calc_ho(dat, facets="pop.DWH")
+fst_pvals <- get.snpR.stats(my.dat, facets = "pop.DWH", stats = "ho")
+fst_pvals
+
+my.dat <- calc_ho(dat, facets="pop")
+get.snpR.stats(my.dat, facets = "pop", stats = "ho")
+
+table(paste(sample_meta$pop, sample_meta$DWH))
+table(paste( sample_meta$DWH))
+
+# can't do it.
+
 

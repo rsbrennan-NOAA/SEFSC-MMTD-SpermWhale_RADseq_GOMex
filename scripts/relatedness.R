@@ -213,6 +213,25 @@ p
 ggsave("../figures/population_relatedness_scatter.pdf", p, h=3, w=5)
 ggsave("../figures/population_relatedness_scatter.png", p, h=3, w=5)
 
+df_sorted_filt <- df_sorted[(df_sorted$pop_a == "N. Gulf" & df_sorted$pop_b == "N. Gulf") |
+                              (df_sorted$pop_a == "W. Gulf" & df_sorted$pop_b == "W. Gulf")  | 
+                              (df_sorted$pop_a == "N. Gulf" & df_sorted$pop_b == "W. Gulf")  | 
+                              (df_sorted$pop_a == "W. Gulf" & df_sorted$pop_b == "N. Gulf")  ,]
+p <- ggplot(df_sorted_filt, aes(x=(dist), y=theta,fill=comp_color, color=comp_color, shape=comp_color)) +
+  geom_point(size=2) +
+  scale_color_manual(values=c("grey75", "#009E73", "#CC79A7"))+
+  scale_fill_manual(values= c("grey75","#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,23,24)) +
+  theme_classic(base_size = 14)+
+  theme(legend.title=element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 4, shape=c(21,23,24))))+
+  theme(legend.position = c(0.8, 0.8)) +
+  xlab("Ocean Distance") +
+  ylab("Relatedness")
+
+p
+
+
 
 ############################################
 # stats:
@@ -242,6 +261,18 @@ plot(model_zibeta)
 # BEZI assumes same process generates zeros and non-zero. 
 # BEINFO assumes different process generates 0
 
+# zero inflated beta regression
+library(gamlss)
+model_zibeta_1 <- gamlss(theta ~ dist, family = BEZI(), data=df_sorted_filt,
+                         control = gamlss.control(n.cyc = 200))
+summary(model_zibeta_1)
+
+plot(model_zibeta_1)
+
+model_zibeta <- gamlss(theta ~ dist, family = BEINF0, data=df_sorted_filt,
+                       control = gamlss.control(n.cyc = 200))
+summary(model_zibeta)
+plot(model_zibeta)
 
 
 

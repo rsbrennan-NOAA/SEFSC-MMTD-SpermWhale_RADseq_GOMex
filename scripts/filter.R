@@ -21,7 +21,7 @@ dat[which(dat$MEAN_DEPTH > 53.4),]
 # HDplot
 library(vcfR)
 
-vcfInput<-read.vcfR("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/filtered.7.vcf.gz")
+vcfInput<-read.vcfR("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/filtered.7_newMAF.vcf.gz")
 
 source("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/scripts/HDplot.R")
 
@@ -53,6 +53,6 @@ datexclude <- HDplotResults[which(HDplotResults$H > 0.6 | abs(HDplotResults$D) >
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
 #498
-write.table(posexclude, file="C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/HD_exclude.txt",
+write.table(posexclude, file="C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/HD_exclude_newMAF.txt",
             quote=F, col.names = FALSE, row.names=FALSE)
 

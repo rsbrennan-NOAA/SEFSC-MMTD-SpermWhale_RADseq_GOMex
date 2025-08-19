@@ -96,6 +96,11 @@ ggsave("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/figures/PCA_1_3_p
 library(SNPRelate)
 library(SeqArray)
 pops <- read.csv("../SW_Metadata.csv")
+dat <- read.table("variants_NoLD_unrelated_PCA.eigenvec", header=F)
+colnames(dat) <- c("ID", "ID2", "PC1", "PC2", "PC3", "PC4", colnames(dat)[7:ncol(dat)])
+
+pops <- pops[pops$Lab.ID.. %in% dat$ID,]
+pops$Sex == "F"
 
 # save females:
 write.table(file="../females_only.txt", pops$Lab.ID..[pops$Sex == "F"], quote=F, row.names=F)
@@ -119,8 +124,12 @@ samples <- SeqArray::seqGetData(gdsin, "sample.id")
 cbind(samples,m2)[order(-m2),]
 hist(m2,breaks=50)
 
+fids <- read.table("../females_only.txt", header=T)
+nrow(fids)
+
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
-                               remove.monosnp = T, maf = 0.05) 
+                               remove.monosnp = T, maf = 0.05,
+                               sample.id = ) 
 
 eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
 barplot(100*eig/sum(eig), main="PCA Eigenvalues")
@@ -156,7 +165,7 @@ d <- ggplot(result, aes(PC1, PC2, fill=Pop.Structure.Location)) +
         legend.title=element_blank())
 d
 
-ggsave("../figures/PCA_1_2_snpRelate_unrelated.png",
+ggsave("../figures/PCA_1_2_snpRelate_females.png",
        d, w=4, h=4)
 
 
