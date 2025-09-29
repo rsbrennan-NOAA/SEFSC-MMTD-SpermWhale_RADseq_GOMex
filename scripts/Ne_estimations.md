@@ -60,4 +60,37 @@ cat ~/spermWhaleRad/analysis/freebayes/vcf_header.txt ~/spermWhaleRad/analysis/f
 ~/spermWhaleRad/analysis/Ne/currentNe/currentNe ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.vcf 21 -k -0.11 -o ~/spermWhaleRad/analysis/Ne/chr_only_withK.out
 
 
+
+# gulf only
+grep -v "Atlantic" ~/spermWhaleRad/scripts/populations.txt |  grep -v "Tortuga"   | cut -f 1 > ~/spermWhaleRad/scripts/gulf_only.txt
+
+~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.vcf
+
+vcftools --vcf ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.vcf \
+         --keep ~/spermWhaleRad/scripts/gulf_only.txt \
+         --recode \
+         --recode-INFO-all \
+         --out ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.gulf_only
+
+~/spermWhaleRad/analysis/Ne/currentNe_new/currentNe ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.gulf_only.recode.vcf 21 -o ~/spermWhaleRad/analysis/Ne/gulf_only_noK.out
+
+# 41 indivs, mean(c(rep(1, 8), rep(0, 33))) = 0.11
+~/spermWhaleRad/analysis/Ne/currentNe_new/currentNe_new ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.gulf_only.recode.vcf 21 -k -0.195 -o ~/spermWhaleRad/analysis/Ne/gulf_only_withK.out
+
+# atlantic only
+
+grep -v "GOMex" ~/spermWhaleRad/scripts/populations.txt  | cut -f 1 > ~/spermWhaleRad/scripts/atl_only.txt
+
+vcftools --vcf ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.vcf \
+         --keep ~/spermWhaleRad/scripts/atl_only.txt \
+         --recode \
+         --recode-INFO-all \
+         --out ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.atl_only
+
+~/spermWhaleRad/analysis/Ne/currentNe_new/currentNe ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.atl_only.recode.vcf 21 -o ~/spermWhaleRad/analysis/Ne/atl_only_noK.out
+
+# 41 indivs, mean(c(rep(1, 8), rep(0, 33))) = 0.11
+~/spermWhaleRad/analysis/Ne/currentNe_new/currentNe_new ~/spermWhaleRad/analysis/freebayes/filtered.chrOnly.gulf_only.recode.vcf 21 -k -0.195 -o ~/spermWhaleRad/analysis/Ne/gulf_only_withK.out
+
+
 ```

@@ -1,6 +1,7 @@
 
 # make nexus file for popart:
 library(ape)
+setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/")
 
 myseqs <- read.dna("analysis/mitotyping/Pmac_All_Align_complete_CR_truncated_RADSamples_only-DropAmbig.fasta",format="fasta",as.matrix=FALSE)
 myseqs.names <- names(myseqs)

@@ -3,8 +3,9 @@ library(scales)
 library(ggbeeswarm)
 
 setwd("C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis")
-
+ 
 dat <- read.table("relatedness.res", header=T)
+
 
 boxplot(dat$theta, breaks=50)
 boxplot(dat$KING)
@@ -64,11 +65,12 @@ half[,c("id_a", "id_b", "theta", "KING")]
     # M       F       F       F
 # half sibs to remove:
   # Pmac120|Pmac125|Pmac131|Pmac101|Pmac130|Pmac052b|Pmac084
+
 # more distant
   #Pmac117|Pmac096
 
 indivrm <- c("Pmac093", "Pmac100", "Pmac125", "Pmac097", "Pmac120", "Pmac131", "Pmac101", "Pmac130", "Pmac52b", "Pmac084", "Pmac117", "Pmac096")
-              # M         F           F           F                      M                    M          M         M         M
+              # M         F           F           F         F             M        F         M          M         M         M             F
 write.table(file= "C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/analysis/relatedindivs.txt", 
             data.frame(indivrm), row.name=F, col.names = F, quote = F)
 
@@ -125,7 +127,7 @@ dat$comp_color <- dat$comparison
 dat$comp_color <- ifelse(dat$pop_a != dat$pop_b, "Between Population", dat$comparison)
 
 
-p <- ggplot(dat, aes(x=comparison, y=theta, 
+p_supp <- ggplot(dat, aes(x=comparison, y=theta, 
                     fill=comp_color,color=comp_color, shape=comp_color)) + 
   geom_quasirandom() +
   geom_violin(color="black", fill=NA) +
@@ -138,7 +140,7 @@ p <- ggplot(dat, aes(x=comparison, y=theta,
   scale_shape_manual(values=c(21,21,22,23,24))+    
   xlab(NULL) +
   guides(color = guide_legend(override.aes = list(size = 5)))
-p  
+p_supp  
 
 ggsave("../figures/population_relatedness.pdf", p, h=5, w=7)
 ggsave("../figures/population_relatedness.png", p, h=5, w=7)
@@ -149,6 +151,10 @@ out.order <- out[order(out$theta, decreasing=T),]
 head(out.order)
 
 write.csv(out.order, file="../relatedness.csv", quote=F,row.names=F)
+
+
+half$id_a <- gsub("b", "", half$id_a)
+half$id_b <- gsub("b", "", half$id_b)
 
 
 # pull out sex of most related:
@@ -242,8 +248,6 @@ model_out <- lm(theta ~ log10(dist),data=dat)
 summary(model_out)
 plot(model_out)
 
-# not that good, but its generally in the ballpark of the results below.
-
 # zero inflated beta regression
 library(gamlss)
 model_zibeta_1 <- gamlss(theta ~ dist, family = BEZI(), data=dat,
@@ -279,6 +283,41 @@ plot(model_zibeta)
 
 
 
+#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------#-----------------------------------------------------------------------------
+# do we have full sibs or parent offspring?
+dat <- read.table("relatedness.res", header=T)
+
+R1_THETA <- ggplot(dat, aes(x=R1, y=theta)) +
+  geom_point(alpha=0.5, size=2) +
+  theme_bw()
+
+R1_R0 <- ggplot(dat, aes(x=R1, y=R0)) +
+  geom_point(alpha=0.5, size=2) +
+  theme_bw() +
+  ylim(0,0.5)
+
+R1_R0_2 <- ggplot(dat, aes(x=R1, y=R0)) +
+  geom_point(alpha=0.5, size=2) +
+  theme_bw() +
+  ylim(0,1)
+
+outp <- ggarrange(R1_R0_2,R1_R0, labels=c("A", "B"))
+outsupp<- ggarrange(outp,p_supp, labels=c("","C"), nrow=2,heights=c(0.33,1))
+
+ggsave(outsupp,filename="../figures/population_relatedness_3panel.pdf",  h=8, w=7)
+ggsave(outsupp,filename="../figures/population_relatedness_3panel.png",  h=8, w=7)
+
+outp
+ggsave(outp, filename="../figures/relatedness_R1_R0.png", h=3, w=6)
+
+
+
+
+
+
 
 
 
@@ -291,7 +330,7 @@ plot(model_zibeta)
 
 samplelist <- read_delim("LDthin_numCorrect.fam",
                          col_names = c("individual", "id2", "a", "b", "c", "d"),
-                         delim=" ")
+                       delim=" ")
 
 # read in all date, in a loop
 ## first create an empty dataframe
@@ -372,3 +411,6 @@ mdat[mdat$theta > 0.03,c("id_a", "id_b", "theta", "KING", "value")]
 tmpd
 
 mdat[which(mdat$q1_id_a > 0.9 & mdat$q1_id_b > 0.9) ,c("id_a", "id_b", "theta", "KING", "q1_id_a","q1_id_b")]
+
+
+

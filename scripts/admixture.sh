@@ -37,16 +37,17 @@ grep -h CV log*.out | cut -f 3- -d " " > cv.txt
 
 # only females:
 
-vcftools --vcf LDthin_numCorrect_unrelated.vcf --remove ~/spermWhaleRad/analysis/males_only.txt  --recode --recode-INFO-all --stdout  > LDthin_numCorrect_females.vcf
+sed -i 's/b//g' LDthin_numCorrect_unrelated.fam
 
-plink --vcf LDthin_numCorrect_females.vcf \
---make-bed --out LDthin_numCorrect_females \
---allow-extra-chr --double-id
+plink --bfile LDthin_numCorrect_unrelated \
+--allow-extra-chr --double-id \
+--keep ~/spermWhaleRad/females_list.txt \
+--make-bed \
+--out LDthin_numCorrect_unrelated_females 
 
+for K in 1 2 3 4 5 6 7; do 
+        admixture -s time --cv LDthin_numCorrect_unrelated_females.bed $K | tee log_females_${K}.out
+    done
+done
 
-for K in 1 2 3 4 5 6 7 8; \
-do admixture --cv LDthin_numCorrect_females.bed $K | tee log${K}.out; done
-
-grep -h CV log*.out | cut -f 3- -d " " > cv_females.txt
-
-~/spermWhaleRad/analysis/pop_structure/cv_females.txt
+grep -h CV log_females_*.out | cut -f 3- -d " " > cv_females.txt

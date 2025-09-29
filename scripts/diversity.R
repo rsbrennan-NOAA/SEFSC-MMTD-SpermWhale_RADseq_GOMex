@@ -434,11 +434,11 @@ ggsave(file="../figures/fig4_revision.png",
 
 
 
-
+#---------------------------------------------------------------------------------------
 # het pre and post dwh:
 
-dat <- snpR::read_vcf("analysis/filtered.final.vcf.gz")
-pops <- read.csv("SW_Metadata.csv")
+dat <- snpR::read_vcf("filtered.final.vcf.gz")
+pops <- read.csv("../SW_Metadata.csv")
 
 colnames(dat) <- gsub("b", "",colnames(dat))
 ids <- data.frame(IDs = colnames(dat))
@@ -456,22 +456,31 @@ sample_meta[sample_meta$pop == "WGOMex",]
 
 sample_meta$DWH <- "PreDWH"
 sample_meta$date <- as.Date(sample_meta$date, format = "%m/%d/%Y")
-sample_meta$DWH[sample_meta$date > as.Date("2003-06-01")] <- "Post-DWH"
+#sample_meta$DWH[sample_meta$date > as.Date("2003-06-01")] <- "Post-DWH"
+sample_meta$DWH[sample_meta$date > as.Date("2005-06-15")] <- "Post-DWH"
 table(sample_meta$DWH)
 sample_meta <- sample_meta[, -3]
 sample.meta(dat) <- sample_meta
 
-# calculate fst between the populations
+# calculate between the populations
 my.dat <- calc_ho(dat, facets="pop.DWH")
 fst_pvals <- get.snpR.stats(my.dat, facets = "pop.DWH", stats = "ho")
 fst_pvals
 
-my.dat <- calc_ho(dat, facets="pop")
-get.snpR.stats(my.dat, facets = "pop", stats = "ho")
+my.dat <- calc_ho(dat, facets="DWH")
+get.snpR.stats(my.dat, facets = "DWH", stats = "ho")
+
+my.dat <- calc_ho(dat)
+get.snpR.stats(my.dat, stats = "ho")
 
 table(paste(sample_meta$pop, sample_meta$DWH))
 table(paste( sample_meta$DWH))
 
-# can't do it.
+
+
+
+
+
+
 
 

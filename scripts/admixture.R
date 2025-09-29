@@ -133,7 +133,7 @@ p <- ggplot(cvin,aes(x=K,y=cv)) +
 p
 ggsave("../figures/cv_females.png", p, h=3, w=3)
 
-# actual results:
+# actual results: 
 
 samplelist <- read_delim("pop_structure/variants_NoLD_unrelated_femalesOnly_PCA.fam",
                         col_names = c("individual"),
