@@ -2,6 +2,8 @@
 
 This repository contains scripts to analyze RADseq data from 73 sperm whale samples across the Gulf of Mexico and Atlantic.
 
+The corresponding manuscript is: [Mitochondrial structure despite nuclear panmixia: sex-specific dispersal dictates population structure in sperm whales](https://doi.org/10.1101/2025.04.29.651281)
+
 Raw data can be found at NCBI bioproject PRJNA1189584
 
 All scripts are found in the `scripts` directory and their function is described below.
@@ -84,6 +86,7 @@ Supplemental figs:
 - Fig. S5: `dapc.R`
 - Fig. S6: `pca_unrelated.R`
 - Fig. S7: `admixture.R`
+- Fig. S8: `diversity.R`
 
 
 
